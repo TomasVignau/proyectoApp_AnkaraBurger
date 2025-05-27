@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:proyecto_app/components/listaDeProductos.dart';
 import 'package:proyecto_app/core/app_Colors.dart';
+import 'package:esc_pos_printer/esc_pos_printer.dart';
+import 'package:esc_pos_utils/esc_pos_utils.dart';
 
 class ImcPedidoScreen extends StatefulWidget {
   final List<ListaDeProductos> listaDeProductos;
@@ -102,8 +104,89 @@ class _ImcPedidoScreenState extends State<ImcPedidoScreen> {
 
                 const SizedBox(height: 20),
                 ElevatedButton(
-                  onPressed: () {
-                    print("CONFIRMAR PEDIDO");
+                  /*onPressed: () {
+                    print("COFIRMAR PEDIDO");
+                  },*/
+                  onPressed: () async {
+                    print("COFIRMAR PEDIDO");
+                    const String printerIp =
+                        '192.168.0.123'; // IP de tu impresora
+                    const int port =
+                        9100; // Puerto por defecto para impresión ESC/POS
+
+                    final profile = await CapabilityProfile.load();
+                    final printer = NetworkPrinter(PaperSize.mm80, profile);
+
+                    final PosPrintResult res = await printer.connect(
+                      printerIp,
+                      port: port,
+                    );
+
+                    if (res == PosPrintResult.success) {
+                      printer.setStyles(
+                        PosStyles(align: PosAlign.center, bold: true),
+                      );
+                      printer.text('*** Pedido Ankara ***');
+                      printer.feed(1);
+
+                      for (var element in widget.listaDeProductos) {
+                        if (element.cantidadSeleccionada > 0) {
+                          printer.setStyles(
+                            PosStyles(align: PosAlign.left, bold: true),
+                          );
+                          printer.text(
+                            '${element.nombreProducto} x${element.cantidadSeleccionada}',
+                          );
+
+                          for (var entry in element.ingredientes.entries) {
+                            final nombre = entry.key;
+                            final cantidad = entry.value;
+
+                            if (cantidad == 0) {
+                              printer.setStyles(PosStyles(reverse: true));
+                              printer.text('- $nombre REMOVIDO');
+                            } else if (cantidad > 1) {
+                              printer.setStyles(PosStyles());
+                              printer.text('+ $nombre x$cantidad');
+                            } else {
+                              printer.setStyles(PosStyles());
+                              printer.text('+ $nombre');
+                            }
+                          }
+
+                          printer.feed(1);
+                        }
+                      }
+
+                      printer.feed(1);
+                      printer.cut();
+                      printer.disconnect();
+                    } else {
+                      print('Error al conectar con la impresora: $res');
+
+                      // Mostrar diálogo de error en pantalla
+                      showDialog(
+                        context: context,
+                        builder: (context) {
+                          return AlertDialog(
+                            title: const Text('Error de impresión'),
+                            content: Text(
+                              'No se pudo conectar con la impresora. Código: $res',
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(
+                                    context,
+                                  ).pop(); // Cierra el diálogo
+                                },
+                                child: const Text('Aceptar'),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.accent,
