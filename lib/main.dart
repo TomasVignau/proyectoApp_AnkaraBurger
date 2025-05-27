@@ -14,5 +14,3 @@ class MainApp extends StatelessWidget {
       home: ImcHomeScreen());
   }
 }
-
-//ALKDLAKS
