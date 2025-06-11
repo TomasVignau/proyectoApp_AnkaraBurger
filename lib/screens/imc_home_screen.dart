@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:intl/message_format.dart';
+import 'package:proyecto_app/components/botonDesplegable.dart';
 import 'package:proyecto_app/components/logoImageCenter.dart';
 import 'package:proyecto_app/screens/imc_pag1_screen.dart';
 
@@ -10,6 +12,10 @@ class ImcHomeScreen extends StatefulWidget {
 }
 
 class _ImcHomeScreenState extends State<ImcHomeScreen> {
+  final int CANT_MESAS = 10;
+  String? mesaSeleccionada;
+  late List<String> mesas = List.generate(CANT_MESAS, (index) => 'Mesa ${index + 1}');
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -26,21 +32,79 @@ class _ImcHomeScreenState extends State<ImcHomeScreen> {
 
           Padding(
             padding: const EdgeInsets.all(16.0),
+            child: BotonDesplegable(
+              valorSeleccionado: mesaSeleccionada,
+              opciones: mesas,
+              textoAyuda: "Selecciona el tipo de hamburguesa",
+              onChanged: (nuevoValor) {
+                setState(() {
+                  mesaSeleccionada = nuevoValor;
+                });
+              },
+            ),
+          ),
+
+          SizedBox(height: 8),
+
+          Padding(
+            padding: const EdgeInsets.all(16.0),
             child: SizedBox(
               height: 60,
               width: double.infinity,
               child: ElevatedButton(
+                /*onPressed: () {
+                  if (mesaSeleccionada == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text("Debe seleccionar una mesa"),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  } else {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (context) => ImcPag1Screen(
+                              mesaSeleccionada: mesaSeleccionada!,
+                            ),
+                      ),
+                    );
+                    print("COMANDA INICIADA");
+                  }
+                },*/
                 onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const ImcPag1Screen(),
-                    ),
-                  );
-                  print(
-                    "COMANDA INICIADA",
-                  ); //MUESTRA POR CONSOLAR PARA SABER SI ACTUA BIEN
+                  if (mesaSeleccionada == null) {
+                    showDialog(
+                      context: context,
+                      builder:
+                          (context) => AlertDialog(
+                            title: Text("Error"),
+                            content: Text(
+                              "Debe seleccionar una mesa antes de iniciar la comanda.",
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: Text("OK"),
+                              ),
+                            ],
+                          ),
+                    );
+                  } else {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (context) => ImcPag1Screen(
+                              mesaSeleccionada: mesaSeleccionada!,
+                            ),
+                      ),
+                    );
+                    print("COMANDA INICIADA");
+                  }
                 },
+
                 style: ButtonStyle(
                   shape: WidgetStateProperty.all(RoundedRectangleBorder()),
                   backgroundColor: WidgetStateProperty.all(

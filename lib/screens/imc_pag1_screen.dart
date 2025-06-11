@@ -5,7 +5,9 @@ import 'package:proyecto_app/database/database_helper.dart';
 import 'package:proyecto_app/screens/imc_pedido_screen.dart';
 
 class ImcPag1Screen extends StatefulWidget {
-  const ImcPag1Screen({super.key});
+  final String mesaSeleccionada;
+
+  const ImcPag1Screen({super.key, required this.mesaSeleccionada});
 
   @override
   State<ImcPag1Screen> createState() => _ImcPag1ScreenState();
@@ -43,7 +45,7 @@ class _ImcPag1ScreenState extends State<ImcPag1Screen> {
                 MaterialPageRoute(
                   builder:
                       (context) =>
-                          ImcPedidoScreen(listaDeProductos: listadoDeProductos),
+                          ImcPedidoScreen(listaDeProductos: listadoDeProductos, mesaSeleccionada: widget.mesaSeleccionada),
                 ),
               );
               print("BOTÓN CARRITO PRESIONADO");
@@ -74,23 +76,44 @@ class _ImcPag1ScreenState extends State<ImcPag1Screen> {
         ],
       ),
 
-      body:
-          listadoDeProductos.isEmpty
-              ? Center(child: CircularProgressIndicator())
-              : ListView(
-                children:
-                    listadoDeProductos.map((producto) {
-                      return Producto(
-                        nombreProducto: producto.nombreProducto,
-                        urlImagen: producto.urlImagen,
-                        descripcionProducto: producto.descripcionProducto,
-                        onCantidadCambiada: actualizarCantidad,
-                        cantidadInicial: producto.cantidadSeleccionada,
-                        ingredientes: producto.ingredientes,
-                        onIngredientesCambiados: actualizarIngredientes,
-                      );
-                    }).toList(),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            color: Colors.black87,
+            child: Text(
+              'Mesa seleccionada: ${widget.mesaSeleccionada}',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
               ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Expanded(
+            child:
+                listadoDeProductos.isEmpty
+                    ? const Center(child: CircularProgressIndicator())
+                    : ListView(
+                      children:
+                          listadoDeProductos.map((producto) {
+                            return Producto(
+                              nombreProducto: producto.nombreProducto,
+                              urlImagen: producto.urlImagen,
+                              descripcionProducto: producto.descripcionProducto,
+                              onCantidadCambiada: actualizarCantidad,
+                              cantidadInicial: producto.cantidadSeleccionada,
+                              ingredientes: producto.ingredientes,
+                              onIngredientesCambiados: actualizarIngredientes,
+                            );
+                          }).toList(),
+                    ),
+          ),
+        ],
+      ),
     );
   }
 

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+/*import 'package:flutter/material.dart';
 import 'package:proyecto_app/components/listaDeProductos.dart';
 import 'package:proyecto_app/core/app_Colors.dart';
 import 'package:esc_pos_printer/esc_pos_printer.dart';
@@ -6,8 +6,13 @@ import 'package:esc_pos_utils/esc_pos_utils.dart';
 
 class ImcPedidoScreen extends StatefulWidget {
   final List<ListaDeProductos> listaDeProductos;
+  final String mesaSeleccionada;
 
-  const ImcPedidoScreen({super.key, required this.listaDeProductos});
+  const ImcPedidoScreen({
+    super.key,
+    required this.listaDeProductos,
+    required this.mesaSeleccionada,
+  });
 
   @override
   State<ImcPedidoScreen> createState() => _ImcPedidoScreenState();
@@ -21,6 +26,20 @@ class _ImcPedidoScreenState extends State<ImcPedidoScreen> {
       appBar: estiloAppBar(),
       body: ListView(
         children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            color: Colors.black87,
+            child: Text(
+              'Mesa seleccionada: ${widget.mesaSeleccionada}',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+
           Container(
             margin: const EdgeInsets.all(10.0),
             child: Column(
@@ -129,6 +148,8 @@ class _ImcPedidoScreenState extends State<ImcPedidoScreen> {
                       printer.text('*** Pedido Ankara ***');
                       printer.feed(1);
 
+                      printer.text('Número de mesa: ${widget.mesaSeleccionada}');
+
                       for (var element in widget.listaDeProductos) {
                         if (element.cantidadSeleccionada > 0) {
                           printer.setStyles(
@@ -226,6 +247,233 @@ class _ImcPedidoScreenState extends State<ImcPedidoScreen> {
           ),
         ),
       ],
+    );
+  }
+}*/
+
+// -------- PARA IMPRIMIR POR PDF --------
+
+import 'package:flutter/material.dart';
+import 'package:proyecto_app/components/listaDeProductos.dart';
+import 'package:proyecto_app/core/app_Colors.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
+
+class ImcPedidoScreen extends StatefulWidget {
+  final List<ListaDeProductos> listaDeProductos;
+  final String mesaSeleccionada;
+
+  const ImcPedidoScreen({
+    super.key,
+    required this.listaDeProductos,
+    required this.mesaSeleccionada,
+  });
+
+  @override
+  State<ImcPedidoScreen> createState() => _ImcPedidoScreenState();
+}
+
+class _ImcPedidoScreenState extends State<ImcPedidoScreen> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: estiloAppBar(),
+      body: ListView(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            color: Colors.black87,
+            child: Text(
+              'Mesa seleccionada: ${widget.mesaSeleccionada}',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+
+          Container(
+            margin: const EdgeInsets.all(10.0),
+            child: Column(
+              children: [
+                for (var element in widget.listaDeProductos)
+                  if (element.cantidadSeleccionada > 0)
+                    Container(
+                      margin: const EdgeInsets.symmetric(vertical: 6.0),
+                      padding: const EdgeInsets.all(12.0),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12.0),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.2),
+                            blurRadius: 6,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                element.nombreProducto,
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                "${element.cantidadSeleccionada}",
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 4,
+                            children:
+                                element.ingredientes.entries.map((entry) {
+                                  final nombre = entry.key;
+                                  final cantidad = entry.value;
+
+                                  Color color;
+                                  TextDecoration decoracion =
+                                      TextDecoration.none;
+
+                                  if (cantidad == 0) {
+                                    color = Colors.red;
+                                    decoracion = TextDecoration.lineThrough;
+                                  } else if (cantidad == 1) {
+                                    color = Colors.grey;
+                                  } else {
+                                    color = Colors.green;
+                                  }
+
+                                  return Text(
+                                    cantidad > 1
+                                        ? "$nombre x$cantidad"
+                                        : nombre,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: color,
+                                      decoration: decoracion,
+                                    ),
+                                  );
+                                }).toList(),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  /*onPressed: () {
+                    print("COFIRMAR PEDIDO");
+                  },*/
+                  onPressed: () {
+                    imprimirConImpresoraComun();
+                  },
+
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.accent,
+                    foregroundColor: Colors.black,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 40,
+                      vertical: 15,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const Text(
+                    'Confirmar Pedido',
+                    style: TextStyle(fontSize: 18),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  AppBar estiloAppBar() {
+    return AppBar(
+      title: const Text("PEDIDO"),
+      backgroundColor: Colors.black,
+      foregroundColor: Colors.white,
+      actions: [
+        Padding(
+          padding: const EdgeInsets.only(right: 10.0),
+          child: Image.asset(
+            'assets/images/LogoAnkara.png',
+            height: 75, // Puedes ajustar el tamaño como necesites
+          ),
+        ),
+      ],
+    );
+  }
+
+  void imprimirConImpresoraComun() async {
+    final pdf = pw.Document();
+
+    pdf.addPage(
+      pw.Page(
+        build: (pw.Context context) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Center(
+                child: pw.Text(
+                  '*** Pedido Ankara ***',
+                  style: pw.TextStyle(
+                    fontSize: 18,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+              ),
+              pw.SizedBox(height: 10),
+              pw.Text('Número de mesa: ${widget.mesaSeleccionada}'),
+              pw.SizedBox(height: 10),
+              for (var element in widget.listaDeProductos)
+                if (element.cantidadSeleccionada > 0) ...[
+                  pw.Text(
+                    '${element.nombreProducto} x${element.cantidadSeleccionada}',
+                    style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                  ),
+                  for (var entry in element.ingredientes.entries)
+                    if (entry.value == 0)
+                      pw.Text(
+                        '       - SIN ${entry.key}',
+                        style: pw.TextStyle(color: PdfColors.red),
+                      )
+                    else if (entry.value > 1)
+                      pw.Text('     + ${entry.key} x${entry.value}')
+                    else
+                      pw.Text('     + ${entry.key}'),
+                  pw.SizedBox(height: 10),
+                ],
+            ],
+          );
+        },
+      ),
+    );
+
+    await Printing.layoutPdf(
+      onLayout: (PdfPageFormat format) async => pdf.save(),
     );
   }
 }
