@@ -1,11 +1,14 @@
+// lib/screens/imc_pag1_screen.dart
+
 import 'package:flutter/material.dart';
-import 'package:proyecto_app/components/producto.dart';
-import 'package:proyecto_app/components/listaDeProductos.dart';
-import 'package:proyecto_app/database/database_helper.dart';
+import 'package:proyecto_app/components/mesa.dart';
+import 'package:proyecto_app/components/producto.dart'; // Tu widget Producto
+import 'package:proyecto_app/components/listaDeProductos.dart'; // Tu modelo de datos ListaDeProductos
+import 'package:proyecto_app/database/producto_helper.dart';
 import 'package:proyecto_app/screens/imc_pedido_screen.dart';
 
 class ImcPag1Screen extends StatefulWidget {
-  final String mesaSeleccionada;
+  final Mesa mesaSeleccionada;
 
   const ImcPag1Screen({super.key, required this.mesaSeleccionada});
 
@@ -14,6 +17,7 @@ class ImcPag1Screen extends StatefulWidget {
 }
 
 class _ImcPag1ScreenState extends State<ImcPag1Screen> {
+  // Esta declaración ya es correcta
   List<ListaDeProductos> listadoDeProductos = [];
   int totalCantidadSeleccionada = 0;
 
@@ -23,9 +27,11 @@ class _ImcPag1ScreenState extends State<ImcPag1Screen> {
     cargarProductosDesdeBaseDeDatos();
   }
 
-  // Método para cargar los productos desde la base de datos
   void cargarProductosDesdeBaseDeDatos() async {
-    listadoDeProductos = await DataBaseHelper.instance.obtenerProductos();
+    // Aquí es donde ocurría el error, ahora ProductoHelper devuelve el tipo correcto
+    listadoDeProductos = await ProductoHelper.obtenerProductos();
+    // Después de cargar, actualiza el total si es necesario (si los productos iniciales tienen cantidad > 0)
+    totalCantidadSeleccionada = listadoDeProductos.fold(0, (sum, prod) => sum + prod.cantidadSeleccionada);
     setState(() {});
   }
 
@@ -34,7 +40,6 @@ class _ImcPag1ScreenState extends State<ImcPag1Screen> {
     return Scaffold(
       backgroundColor: const Color(0xDF837E66),
       appBar: estiloAppBar(),
-
       floatingActionButton: Stack(
         alignment: Alignment.topRight,
         children: [
@@ -43,9 +48,10 @@ class _ImcPag1ScreenState extends State<ImcPag1Screen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder:
-                      (context) =>
-                          ImcPedidoScreen(listaDeProductos: listadoDeProductos, mesaSeleccionada: widget.mesaSeleccionada),
+                  builder: (context) => ImcPedidoScreen(
+                    listaDeProductos: listadoDeProductos, // Pasa la lista de modelos de datos
+                    mesaSeleccionada: widget.mesaSeleccionada,
+                  ),
                 ),
               );
               print("BOTÓN CARRITO PRESIONADO");
@@ -75,7 +81,6 @@ class _ImcPag1ScreenState extends State<ImcPag1Screen> {
             ),
         ],
       ),
-
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -94,23 +99,21 @@ class _ImcPag1ScreenState extends State<ImcPag1Screen> {
           ),
           const SizedBox(height: 8),
           Expanded(
-            child:
-                listadoDeProductos.isEmpty
-                    ? const Center(child: CircularProgressIndicator())
-                    : ListView(
-                      children:
-                          listadoDeProductos.map((producto) {
-                            return Producto(
-                              nombreProducto: producto.nombreProducto,
-                              urlImagen: producto.urlImagen,
-                              descripcionProducto: producto.descripcionProducto,
-                              onCantidadCambiada: actualizarCantidad,
-                              cantidadInicial: producto.cantidadSeleccionada,
-                              ingredientes: producto.ingredientes,
-                              onIngredientesCambiados: actualizarIngredientes,
-                            );
-                          }).toList(),
-                    ),
+            child: listadoDeProductos.isEmpty
+                ? const Center(child: CircularProgressIndicator())
+                : ListView(
+                    children: listadoDeProductos.map((productoModel) { // Ahora 'productoModel' es una instancia de ListaDeProductos
+                      return Producto( // Aquí usas tu Widget 'Producto'
+                        nombreProducto: productoModel.nombreProducto,
+                        urlImagen: productoModel.urlImagen,
+                        descripcionProducto: productoModel.descripcionProducto,
+                        onCantidadCambiada: actualizarCantidad,
+                        cantidadInicial: productoModel.cantidadSeleccionada, // Le pasas la cantidad del modelo
+                        ingredientes: productoModel.ingredientes,
+                        onIngredientesCambiados: actualizarIngredientes,
+                      );
+                    }).toList(),
+                  ),
           ),
         ],
       ),
@@ -131,11 +134,11 @@ class _ImcPag1ScreenState extends State<ImcPag1Screen> {
     );
   }
 
-  // Método para actualizar la cantidad
+  // Método para actualizar la cantidad (ahora opera sobre ListaDeProductos)
   void actualizarCantidad(String nombreProducto, int cantidad) {
     setState(() {
       final producto = listadoDeProductos.firstWhere(
-        (producto) => producto.nombreProducto == nombreProducto,
+        (p) => p.nombreProducto == nombreProducto,
       );
       producto.cantidadSeleccionada = cantidad;
 
@@ -147,14 +150,14 @@ class _ImcPag1ScreenState extends State<ImcPag1Screen> {
     });
   }
 
-  // Método para actualizar los ingredientes
+  // Método para actualizar los ingredientes (ahora opera sobre ListaDeProductos)
   void actualizarIngredientes(
     String nombreProducto,
     Map<String, int> nuevosIngredientes,
   ) {
     setState(() {
       final producto = listadoDeProductos.firstWhere(
-        (producto) => producto.nombreProducto == nombreProducto,
+        (p) => p.nombreProducto == nombreProducto,
       );
       producto.ingredientes = nuevosIngredientes;
     });

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:intl/message_format.dart';
-import 'package:proyecto_app/components/botonDesplegable.dart';
 import 'package:proyecto_app/components/logoImageCenter.dart';
+import 'package:proyecto_app/components/mesa.dart';
+import 'package:proyecto_app/database/mesa_helper.dart';
 import 'package:proyecto_app/screens/imc_pag1_screen.dart';
 
 class ImcHomeScreen extends StatefulWidget {
@@ -12,9 +12,8 @@ class ImcHomeScreen extends StatefulWidget {
 }
 
 class _ImcHomeScreenState extends State<ImcHomeScreen> {
-  final int CANT_MESAS = 10;
-  String? mesaSeleccionada;
-  late List<String> mesas = List.generate(CANT_MESAS, (index) => 'Mesa ${index + 1}');
+  List<Mesa> listaMesas = [];
+  Mesa? mesaSeleccionada;
 
   @override
   Widget build(BuildContext context) {
@@ -32,14 +31,57 @@ class _ImcHomeScreenState extends State<ImcHomeScreen> {
 
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: BotonDesplegable(
-              valorSeleccionado: mesaSeleccionada,
-              opciones: mesas,
-              textoAyuda: "Selecciona el tipo de hamburguesa",
-              onChanged: (nuevoValor) {
-                setState(() {
-                  mesaSeleccionada = nuevoValor;
-                });
+            child: FutureBuilder<List<Mesa>>(
+              future: MesaHelper.obtenerMesas(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const CircularProgressIndicator();
+                } else if (snapshot.hasError) {
+                  return Text('Error: ${snapshot.error}');
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Text('No hay mesas disponibles');
+                }
+
+                listaMesas = snapshot.data!;
+
+                return DropdownButtonFormField<Mesa>(
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.white,
+                    labelText: "Selecciona la mesa",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  value: mesaSeleccionada,
+                  items:
+                      listaMesas.map((mesa) {
+                        return DropdownMenuItem<Mesa>(
+                          value: mesa,
+                          child: Row(
+                            children: [
+                              Text('Mesa ${mesa.id}'),
+                              const SizedBox(width: 8),
+                              Icon(
+                                mesa.estado == 0
+                                    ? Icons.event_available
+                                    : Icons.event_busy_rounded,
+                                color:
+                                    mesa.estado == 0
+                                        ? Colors.green
+                                        : Colors.red,
+                                size: 20,
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                  onChanged: (Mesa? nuevaMesa) {
+                    setState(() {
+                      mesaSeleccionada = nuevaMesa;
+                    });
+                  },
+                );
               },
             ),
           ),
@@ -52,27 +94,6 @@ class _ImcHomeScreenState extends State<ImcHomeScreen> {
               height: 60,
               width: double.infinity,
               child: ElevatedButton(
-                /*onPressed: () {
-                  if (mesaSeleccionada == null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text("Debe seleccionar una mesa"),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  } else {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder:
-                            (context) => ImcPag1Screen(
-                              mesaSeleccionada: mesaSeleccionada!,
-                            ),
-                      ),
-                    );
-                    print("COMANDA INICIADA");
-                  }
-                },*/
                 onPressed: () {
                   if (mesaSeleccionada == null) {
                     showDialog(

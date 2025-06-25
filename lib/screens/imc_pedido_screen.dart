@@ -255,14 +255,16 @@ class _ImcPedidoScreenState extends State<ImcPedidoScreen> {
 
 import 'package:flutter/material.dart';
 import 'package:proyecto_app/components/listaDeProductos.dart';
+import 'package:proyecto_app/components/mesa.dart';
 import 'package:proyecto_app/core/app_Colors.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import 'package:proyecto_app/database/mesa_helper.dart';
 
 class ImcPedidoScreen extends StatefulWidget {
   final List<ListaDeProductos> listaDeProductos;
-  final String mesaSeleccionada;
+  final Mesa mesaSeleccionada;
 
   const ImcPedidoScreen({
     super.key,
@@ -286,7 +288,7 @@ class _ImcPedidoScreenState extends State<ImcPedidoScreen> {
             padding: const EdgeInsets.all(16),
             color: Colors.black87,
             child: Text(
-              'Mesa seleccionada: ${widget.mesaSeleccionada}',
+              'Mesa seleccionada: ${widget.mesaSeleccionada.id}',
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 18,
@@ -384,6 +386,7 @@ class _ImcPedidoScreenState extends State<ImcPedidoScreen> {
                   },*/
                   onPressed: () {
                     imprimirConImpresoraComun();
+                    MesaHelper.cambiarEstadoMesa(widget.mesaSeleccionada.id, 1);
                   },
 
                   style: ElevatedButton.styleFrom(
