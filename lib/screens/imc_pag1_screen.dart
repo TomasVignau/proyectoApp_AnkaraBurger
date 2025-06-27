@@ -1,11 +1,11 @@
-// lib/screens/imc_pag1_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:proyecto_app/components/mesa.dart';
 import 'package:proyecto_app/components/producto.dart'; // Tu widget Producto
 import 'package:proyecto_app/components/listaDeProductos.dart'; // Tu modelo de datos ListaDeProductos
+import 'package:proyecto_app/database/pedido_helper.dart';
 import 'package:proyecto_app/database/producto_helper.dart';
 import 'package:proyecto_app/screens/imc_pedido_screen.dart';
+import 'package:proyecto_app/screens/imc_pedidoHastaElMomento_screen.dart';
 
 class ImcPag1Screen extends StatefulWidget {
   final Mesa mesaSeleccionada;
@@ -43,81 +43,130 @@ class _ImcPag1ScreenState extends State<ImcPag1Screen> {
     return Scaffold(
       backgroundColor: const Color(0xDF837E66),
       appBar: estiloAppBar(),
-      floatingActionButton: Stack(
-        alignment: Alignment.topRight,
+      // Eliminamos floatingActionButton de aquí porque lo manejaremos dentro del body
+      body: Stack(
         children: [
-          FloatingActionButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ImcPedidoScreen(
-                    listaDeProductos: listadoDeProductos, // Pasa la lista de modelos de datos
-                    mesaSeleccionada: widget.mesaSeleccionada,
-                  ),
-                ),
-              );
-              print("BOTÓN CARRITO PRESIONADO");
-            },
-            backgroundColor: Colors.black,
-            child: const Icon(Icons.shopping_cart_outlined),
-          ),
-          if (totalCantidadSeleccionada > 0)
-            Positioned(
-              right: 0,
-              top: 0,
-              child: Container(
-                padding: const EdgeInsets.all(5),
-                decoration: const BoxDecoration(
-                  color: Colors.red,
-                  shape: BoxShape.circle,
-                ),
+          // Contenido principal de tu pantalla
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                color: Colors.black87,
                 child: Text(
-                  '$totalCantidadSeleccionada',
+                  'Mesa seleccionada: ${widget.mesaSeleccionada}',
                   style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 12,
+                    fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
+                  textAlign: TextAlign.center,
                 ),
               ),
-            ),
-        ],
-      ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            color: Colors.black87,
-            child: Text(
-              'Mesa seleccionada: ${widget.mesaSeleccionada}',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+              const SizedBox(height: 8),
+              Expanded(
+                child:
+                    listadoDeProductos.isEmpty
+                        ? const Center(child: CircularProgressIndicator())
+                        : ListView(
+                          children:
+                              listadoDeProductos.map((productoModel) {
+                                return Producto(
+                                  nombreProducto: productoModel.nombreProducto,
+                                  urlImagen: productoModel.urlImagen,
+                                  descripcionProducto:
+                                      productoModel.descripcionProducto,
+                                  onCantidadCambiada: actualizarCantidad,
+                                  cantidadInicial:
+                                      productoModel.cantidadSeleccionada,
+                                  ingredientes: productoModel.ingredientes,
+                                  onIngredientesCambiados:
+                                      actualizarIngredientes,
+                                  precio: productoModel.precioUnitario,
+                                );
+                              }).toList(),
+                        ),
               ),
-              textAlign: TextAlign.center,
+            ],
+          ),
+
+          // Botón "VER PEDIDO" en la esquina inferior izquierda
+          Positioned(
+            left: 16, // Margen desde la izquierda
+            bottom: 16, // Margen desde la parte inferior
+            child: FloatingActionButton(
+              heroTag: "verPedidoBtn", // Único heroTag
+              onPressed: () async {
+                final productos = await PedidoHelper.verPedido(widget.mesaSeleccionada.id);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (context) => Imc_pedidoHastaElMomento_screen(
+                          mesaId: widget.mesaSeleccionada.id,
+                          listaDeProductos: productos,
+                        ),
+                  ),
+                );
+                print("BOTÓN VER PEDIDO PRESIONADO");
+              },
+              backgroundColor: Colors.black,
+              child: const Text(
+                "VER PEDIDO",
+                style: TextStyle(fontSize: 10, fontStyle: FontStyle.italic, color: Colors.amber),
+              ),
             ),
           ),
-          const SizedBox(height: 8),
-          Expanded(
-            child: listadoDeProductos.isEmpty
-                ? const Center(child: CircularProgressIndicator())
-                : ListView(
-                    children: listadoDeProductos.map((productoModel) { // Ahora 'productoModel' es una instancia de ListaDeProductos
-                      return Producto( // Aquí usas tu Widget 'Producto'
-                        nombreProducto: productoModel.nombreProducto,
-                        urlImagen: productoModel.urlImagen,
-                        descripcionProducto: productoModel.descripcionProducto,
-                        onCantidadCambiada: actualizarCantidad,
-                        cantidadInicial: productoModel.cantidadSeleccionada, // Le pasas la cantidad del modelo
-                        ingredientes: productoModel.ingredientes,
-                        onIngredientesCambiados: actualizarIngredientes,
-                        precio: productoModel.precioUnitario,
-                      );
-                    }).toList(),
+
+          // Botón del carrito en la esquina inferior derecha
+          Positioned(
+            right: 16, // Margen desde la derecha
+            bottom: 16, // Margen desde la parte inferior
+            child: Stack(
+              // Usamos un Stack aquí para el icono del carrito y el contador
+              alignment: Alignment.topRight, // Alineamos el contador arriba a la derecha del FAB
+              children: [
+                FloatingActionButton(
+                  heroTag: "carritoBtn", // Único heroTag
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (context) => ImcPedidoScreen(
+                              listaDeProductos: listadoDeProductos,
+                              mesaSeleccionada: widget.mesaSeleccionada,
+                            ),
+                      ),
+                    );
+                    print("BOTÓN CARRITO PRESIONADO");
+                  },
+                  backgroundColor: Colors.black,
+                  child: const Icon(Icons.shopping_cart_outlined, color: Colors.amber),
+                ),
+                // Contador de cantidad
+                if (totalCantidadSeleccionada > 0)
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(5),
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Text(
+                        '$totalCantidadSeleccionada',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
                   ),
+              ],
+            ),
           ),
         ],
       ),
