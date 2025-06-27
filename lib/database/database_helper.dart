@@ -184,6 +184,7 @@ class DataBaseHelper {
                   (fila['cebollaCaramelizada'] as int?) ?? 0,
               'Salsa Ankara': (fila['salsaAnkara'] as int?) ?? 0,
             },
+            precioUnitario: fila['precio_unitario'] as double,
           );
         }).toList();
 
@@ -196,6 +197,7 @@ class DataBaseHelper {
             descripcionProducto: fila['descripcion'] as String,
             cantidadSeleccionada: 0,
             ingredientes: {}, // sin ingredientes
+            precioUnitario: fila['precio_unitario'] as double,
           );
         }).toList();
 

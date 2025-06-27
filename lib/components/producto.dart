@@ -11,6 +11,7 @@ class Producto extends StatefulWidget {
   final Map<String, int> ingredientes;
   final Function(String nombreProducto, Map<String, int> nuevosIngredientes)?
   onIngredientesCambiados;
+  final double precio;
 
   const Producto({
     super.key,
@@ -21,6 +22,7 @@ class Producto extends StatefulWidget {
     required this.cantidadInicial,
     required this.ingredientes,
     required this.onIngredientesCambiados,
+    required this.precio,
   });
 
   @override
@@ -75,6 +77,10 @@ class _ProductoState extends State<Producto> {
                   Text(
                     widget.descripcionProducto,
                     style: const TextStyle(fontSize: 14, color: Colors.black54),
+                  ),
+                  Text(
+                    'Precio: \$${widget.precio}',
+                    style: const TextStyle(fontSize: 14, color: Colors.black54, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),

@@ -4,6 +4,7 @@ class ListaDeProductos {
   String descripcionProducto;
   int cantidadSeleccionada;
   Map<String, int> ingredientes;
+  double precioUnitario;
 
   ListaDeProductos({
     required this.nombreProducto,
@@ -11,6 +12,7 @@ class ListaDeProductos {
     required this.descripcionProducto,
     this.cantidadSeleccionada = 0,
     required this.ingredientes,
+    required this.precioUnitario,
   });
 
   // Agrega este factory constructor
@@ -21,6 +23,19 @@ class ListaDeProductos {
       descripcionProducto: json['descripcion'] as String,
       cantidadSeleccionada: 0, // Al cargar desde la API, la cantidad inicial es 0
       ingredientes: (json['ingredientes'] as Map<String, dynamic>).cast<String, int>(),
+       precioUnitario: (json['precio_unitario'] as num).toDouble(),
     );
   }
+
+  Map<String, dynamic> toJson() {
+  return {
+    'nombreProducto': nombreProducto,
+    'urlImagen': urlImagen,
+    'descripcionProducto': descripcionProducto,
+    'cantidadSeleccionada': cantidadSeleccionada,
+    'ingredientes': ingredientes,
+    'precio': precioUnitario,
+  };
+}
+
 }

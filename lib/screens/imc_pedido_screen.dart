@@ -261,6 +261,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:proyecto_app/database/mesa_helper.dart';
+import 'package:proyecto_app/database/pedido_helper.dart';
 
 class ImcPedidoScreen extends StatefulWidget {
   final List<ListaDeProductos> listaDeProductos;
@@ -332,8 +333,16 @@ class _ImcPedidoScreenState extends State<ImcPedidoScreen> {
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
+                              Spacer(),
                               Text(
                                 "${element.cantidadSeleccionada}",
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              Text(
+                                "\n€${element.precioUnitario}",
                                 style: const TextStyle(
                                   fontSize: 18,
                                   color: Colors.black,
@@ -381,12 +390,21 @@ class _ImcPedidoScreenState extends State<ImcPedidoScreen> {
 
                 const SizedBox(height: 20),
                 ElevatedButton(
-                  /*onPressed: () {
-                    print("COFIRMAR PEDIDO");
-                  },*/
                   onPressed: () {
                     imprimirConImpresoraComun();
+
                     MesaHelper.cambiarEstadoMesa(widget.mesaSeleccionada.id, 1);
+
+                    // Filtrá solo productos con cantidad > 0 antes de mandar a actualizar
+                    final productosSeleccionados =
+                        widget.listaDeProductos
+                            .where((p) => p.cantidadSeleccionada > 0)
+                            .toList();
+
+                    PedidoHelper.actualizarPedido(
+                      productosSeleccionados,
+                      widget.mesaSeleccionada,
+                    );
                   },
 
                   style: ElevatedButton.styleFrom(

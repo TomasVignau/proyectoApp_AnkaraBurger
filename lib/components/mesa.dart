@@ -28,4 +28,11 @@ class Mesa {
   String toString() {
     return 'Mesa $id';
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'estado': estado,
+    };
+  }
 }
