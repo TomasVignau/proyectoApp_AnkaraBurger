@@ -17,7 +17,9 @@ class PedidoHelper {
     final mesaJson = Uri.encodeComponent(jsonEncode(mesaSeleccionada.toJson()));
 
     final url = Uri.parse(
-      'http://10.0.2.2/database.php?accion=subirPedido&listadoProductos=$listadoJson&mesaSeleccionada=$mesaJson',
+      'http://10.0.2.2/database.php?accion=subirPedido&listadoProductos=$listadoJson&mesaSeleccionada=$mesaJson', //PARA ANDROID EMULATOR
+      //'http://192.168.0.71/database.php?accion=subirPedido&listadoProductos=$listadoJson&mesaSeleccionada=$mesaJson', //PARA DISPOSITIVOS CONECTADOS A LA RED
+      //'http://ankaraburger.kesug.com/database.php?accion=subirPedido&listadoProductos=$listadoJson&mesaSeleccionada=$mesaJson',
     );
 
     final response = await http.get(url);
@@ -38,7 +40,9 @@ class PedidoHelper {
     int idMesa,
   ) async {
     final url = Uri.parse(
-      'http://10.0.2.2/database.php?accion=verPedido&idMesa=$idMesa',
+      'http://10.0.2.2/database.php?accion=verPedido&idMesa=$idMesa', //PARA ANDROID EMULATOR
+      //'http://192.168.0.71/database.php?accion=verPedido&idMesa=$idMesa', //PARA DISPOSITIVOS CONECTADOS A LA RED
+      //'http://ankaraburger.kesug.com/database.php?accion=verPedido&idMesa=$idMesa',
     );
 
     final response = await http.get(url);
@@ -53,6 +57,24 @@ class PedidoHelper {
         throw Exception('Error al cargar el pedido. Código: ${response.statusCode}, Cuerpo: ${response.body}');
       }
     }
+
+  static Future<String> obtenerFechaYHoraDelPedido(int idMesa) async {
+    final url = Uri.parse(
+      'http://10.0.2.2/database.php?accion=obtenerFechaYHoraDelPedido&idMesa=$idMesa', //PARA ANDROID EMULATOR
+      //'http://192.168.0.71/database.php?accion=verPedido&idMesa=$idMesa', //PARA DISPOSITIVOS CONECTADOS A LA RED
+      //'http://ankaraburger.kesug.com/database.php?accion=verPedido&idMesa=$idMesa',
+    );
+
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final String fecha = jsonDecode(response.body);
+      return fecha;
+      } else {
+        throw Exception('Error al devolver al fecha y hora del pedido.');
+      }
+    }
+    
 }
   
 

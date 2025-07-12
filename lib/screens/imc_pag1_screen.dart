@@ -1,3 +1,124 @@
+/*import 'package:flutter/material.dart';
+import 'package:proyecto_app/components/producto.dart';
+import 'package:proyecto_app/components/hamburguesaSeleccionada.dart';
+import 'package:proyecto_app/screens/resumenDePedidoScreen.dart';
+import 'package:proyecto_app/components/mesa.dart';
+
+class ImcPag1Screen extends StatefulWidget {
+  final Mesa mesaSeleccionada;
+
+  const ImcPag1Screen({super.key, required this.mesaSeleccionada});
+
+  @override
+  State<ImcPag1Screen> createState() => _ImcPag1ScreenState();
+}
+
+class _ImcPag1ScreenState extends State<ImcPag1Screen> {
+  List<HamburguesaSeleccionada> hamburguesasSeleccionadas = [];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xDF837E66),
+      appBar: estiloAppBar(),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            color: Colors.black87,
+            child: Text(
+              'Mesa seleccionada: ${widget.mesaSeleccionada.id}',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Expanded(
+            child: ListView(
+              children: [
+                Producto(
+                  nombreProducto: "Clásica",
+                  urlImagen: "assets/images/clasica.png",
+                  descripcionProducto: "Hamburguesa con lechuga, tomate y carne.",
+                  precio: 1500,
+                  ingredientes: {
+                    "Pan": 1,
+                    "Carne": 1,
+                    "Lechuga": 1,
+                    "Tomate": 1,
+                    "Queso": 1,
+                  },
+                  onAgregar: (hamburguesa) {
+                    setState(() {
+                      hamburguesasSeleccionadas.add(hamburguesa);
+                    });
+                  },
+                ),
+                Producto(
+                  nombreProducto: "Doble Bacon",
+                  urlImagen: "assets/images/bacon.png",
+                  descripcionProducto: "Doble carne, bacon y cheddar.",
+                  precio: 1900,
+                  ingredientes: {
+                    "Pan": 1,
+                    "Carne": 2,
+                    "Bacon": 2,
+                    "Queso": 2,
+                  },
+                  onAgregar: (hamburguesa) {
+                    setState(() {
+                      hamburguesasSeleccionadas.add(hamburguesa);
+                    });
+                  },
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: Colors.black,
+        label: const Text("VER PEDIDO", style: TextStyle(color: Colors.amber)),
+        icon: const Icon(Icons.shopping_cart, color: Colors.amber),
+        onPressed: () async {
+          final resultado = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ResumenDePedidoScreen(hamburguesas: hamburguesasSeleccionadas),
+            ),
+          );
+
+          if (resultado != null && resultado is List<HamburguesaSeleccionada>) {
+            setState(() {
+              hamburguesasSeleccionadas = resultado;
+            });
+          }
+        },
+      ),
+    );
+  }
+
+  AppBar estiloAppBar() {
+    return AppBar(
+      title: const Text("COMANDA"),
+      backgroundColor: Colors.black,
+      foregroundColor: Colors.white,
+      actions: [
+        Padding(
+          padding: const EdgeInsets.only(right: 10.0),
+          child: Image.asset('assets/images/LogoAnkara.png', height: 75),
+        ),
+      ],
+    );
+  }
+}*/
+
+
 import 'package:flutter/material.dart';
 import 'package:proyecto_app/components/mesa.dart';
 import 'package:proyecto_app/components/producto.dart'; // Tu widget Producto

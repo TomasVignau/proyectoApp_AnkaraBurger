@@ -1,3 +1,107 @@
+/*import 'package:flutter/material.dart';
+import 'package:proyecto_app/core/app_Colors.dart';
+import 'package:proyecto_app/components/hamburguesaSeleccionada.dart';
+
+class Producto extends StatelessWidget {
+  final String nombreProducto;
+  final String urlImagen;
+  final String descripcionProducto;
+  final Map<String, int> ingredientes;
+  final double precio;
+
+  final Function(HamburguesaSeleccionada nueva) onAgregar;
+
+  const Producto({
+    super.key,
+    required this.nombreProducto,
+    required this.urlImagen,
+    required this.descripcionProducto,
+    required this.ingredientes,
+    required this.precio,
+    required this.onAgregar,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.secondary,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.asset(
+                urlImagen,
+                width: 60,
+                height: 60,
+                fit: BoxFit.cover,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    nombreProducto,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    descripcionProducto,
+                    style: const TextStyle(fontSize: 14, color: Colors.black54),
+                  ),
+                  Text(
+                    'Precio: \$${precio.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Colors.black54,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Column(
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    shape: BoxShape.circle,
+                  ),
+                  child: IconButton(
+                    onPressed: () {
+                      final nuevaHamburguesa = HamburguesaSeleccionada(
+                        nombre: nombreProducto,
+                        imagen: urlImagen,
+                        descripcion: descripcionProducto,
+                        precio: precio,
+                        ingredientes: Map<String, int>.from(ingredientes),
+                      );
+
+                      onAgregar(nuevaHamburguesa);
+                    },
+                    icon: const Icon(Icons.add),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}*/
+
+
 import 'package:flutter/material.dart';
 import 'package:proyecto_app/core/app_Colors.dart';
 import 'package:proyecto_app/screens/imc_editarHamburguesa_screen.dart';

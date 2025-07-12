@@ -262,6 +262,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:proyecto_app/database/mesa_helper.dart';
 import 'package:proyecto_app/database/pedido_helper.dart';
+import 'package:proyecto_app/screens/imc_home_screen.dart';
 
 class ImcPedidoScreen extends StatefulWidget {
   final List<ListaDeProductos> listaDeProductos;
@@ -487,7 +488,13 @@ class _ImcPedidoScreenState extends State<ImcPedidoScreen> {
                       final productosAActualizar = widget.listaDeProductos.where((p) => p.cantidadSeleccionada > 0).toList();
                       PedidoHelper.actualizarPedido(productosAActualizar, widget.mesaSeleccionada);
                       // Opcional: Navegar de vuelta o mostrar un mensaje de éxito
-                      Navigator.pop(context); // Por ejemplo, vuelve a la pantalla anterior
+                      Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (context) => ImcHomeScreen(),
+                      ),
+                    );
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.accent,
@@ -722,15 +729,17 @@ class _ImcPedidoScreenState extends State<ImcPedidoScreen> {
                 const SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: () {
-                    imprimirConImpresoraComun();
+                    Future<String> fechaDelPedido;
+                    if (MesaHelper.verEstadoMesa(widget.mesaSeleccionada.id) == 0){
+                      MesaHelper.cambiarEstadoMesa(widget.mesaSeleccionada.id, 1);
+                    }
+                    
+                    fechaDelPedido = PedidoHelper.obtenerFechaYHoraDelPedido(widget.mesaSeleccionada.id);
 
-                    MesaHelper.cambiarEstadoMesa(widget.mesaSeleccionada.id, 1);
+                    imprimirConImpresoraComun(fechaDelPedido);
 
                     // Filtrá solo productos con cantidad > 0 antes de mandar a actualizar
-                    final productosSeleccionados =
-                        widget.listaDeProductos
-                            .where((p) => p.cantidadSeleccionada > 0)
-                            .toList();
+                    final productosSeleccionados = widget.listaDeProductos.where((p) => p.cantidadSeleccionada > 0).toList();
 
                     PedidoHelper.actualizarPedido(
                       productosSeleccionados,
@@ -779,7 +788,7 @@ class _ImcPedidoScreenState extends State<ImcPedidoScreen> {
     );
   }
 
-  void imprimirConImpresoraComun() async {
+  void imprimirConImpresoraComun(Future<String> fechaDelPedido) async {
     final pdf = pw.Document();
 
     pdf.addPage(
@@ -799,6 +808,7 @@ class _ImcPedidoScreenState extends State<ImcPedidoScreen> {
               ),
               pw.SizedBox(height: 10),
               pw.Text('Número de mesa: ${widget.mesaSeleccionada}'),
+              pw.Text('Fecha del pedido: $fechaDelPedido'),
               pw.SizedBox(height: 10),
               for (var element in widget.listaDeProductos)
                 if (element.cantidadSeleccionada > 0) ...[
