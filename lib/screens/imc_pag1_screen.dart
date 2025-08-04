@@ -118,13 +118,14 @@ class _ImcPag1ScreenState extends State<ImcPag1Screen> {
   }
 }*/
 
-
 import 'package:flutter/material.dart';
 import 'package:proyecto_app/components/mesa.dart';
 import 'package:proyecto_app/components/producto.dart'; // Tu widget Producto
 import 'package:proyecto_app/components/listaDeProductos.dart'; // Tu modelo de datos ListaDeProductos
+import 'package:proyecto_app/database/mesa_helper.dart';
 import 'package:proyecto_app/database/pedido_helper.dart';
 import 'package:proyecto_app/database/producto_helper.dart';
+import 'package:proyecto_app/screens/imc_home_screen.dart';
 import 'package:proyecto_app/screens/imc_pedido_screen.dart';
 import 'package:proyecto_app/screens/imc_pedidoHastaElMomento_screen.dart';
 
@@ -218,7 +219,9 @@ class _ImcPag1ScreenState extends State<ImcPag1Screen> {
             child: FloatingActionButton(
               heroTag: "verPedidoBtn", // Único heroTag
               onPressed: () async {
-                final productos = await PedidoHelper.verPedido(widget.mesaSeleccionada.id);
+                final productos = await PedidoHelper.verPedido(
+                  widget.mesaSeleccionada.id,
+                );
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -234,7 +237,46 @@ class _ImcPag1ScreenState extends State<ImcPag1Screen> {
               backgroundColor: Colors.black,
               child: const Text(
                 "VER PEDIDO",
-                style: TextStyle(fontSize: 10, fontStyle: FontStyle.italic, color: Colors.amber),
+                style: TextStyle(
+                  fontSize: 10,
+                  fontStyle: FontStyle.italic,
+                  color: Colors.amber,
+                ),
+              ),
+            ),
+          ),
+
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 16), // Margen desde abajo
+              child: SizedBox(
+                width: 200, // Ajustá el ancho como prefieras
+                height: 55, // Opcional: altura personalizada
+                child: FloatingActionButton(
+                  heroTag: "finalizarPedidoBtn",
+                  onPressed: () async {
+                  await PedidoHelper.finalizarPedido(widget.mesaSeleccionada.id, 0);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => ImcHomeScreen()),
+                    );
+                    print("BOTÓN FINALIZAR PEDIDO PRESIONADO");
+                  },
+                  backgroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Text(
+                    "FINALIZAR PEDIDO",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontStyle: FontStyle.italic,
+                      color: Colors.amber,
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
@@ -245,7 +287,9 @@ class _ImcPag1ScreenState extends State<ImcPag1Screen> {
             bottom: 16, // Margen desde la parte inferior
             child: Stack(
               // Usamos un Stack aquí para el icono del carrito y el contador
-              alignment: Alignment.topRight, // Alineamos el contador arriba a la derecha del FAB
+              alignment:
+                  Alignment
+                      .topRight, // Alineamos el contador arriba a la derecha del FAB
               children: [
                 FloatingActionButton(
                   heroTag: "carritoBtn", // Único heroTag
@@ -263,7 +307,10 @@ class _ImcPag1ScreenState extends State<ImcPag1Screen> {
                     print("BOTÓN CARRITO PRESIONADO");
                   },
                   backgroundColor: Colors.black,
-                  child: const Icon(Icons.shopping_cart_outlined, color: Colors.amber),
+                  child: const Icon(
+                    Icons.shopping_cart_outlined,
+                    color: Colors.amber,
+                  ),
                 ),
                 // Contador de cantidad
                 if (totalCantidadSeleccionada > 0)
