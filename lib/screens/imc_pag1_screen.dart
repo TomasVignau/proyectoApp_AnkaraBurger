@@ -256,12 +256,50 @@ class _ImcPag1ScreenState extends State<ImcPag1Screen> {
                 child: FloatingActionButton(
                   heroTag: "finalizarPedidoBtn",
                   onPressed: () async {
-                  await PedidoHelper.finalizarPedido(widget.mesaSeleccionada.id, 0);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => ImcHomeScreen()),
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: const Text("Confirmar"),
+                          content: const Text(
+                            "¿Estás seguro de que querés finalizar el pedido?",
+                          ),
+                          actions: [
+                            TextButton(
+                              child: const Text("No"),
+                              onPressed: () {
+                                Navigator.of(
+                                  context,
+                                ).pop(); // Cierra el diálogo
+                              },
+                            ),
+                            TextButton(
+                              child: const Text("Sí"),
+                              onPressed: () async {
+                                Navigator.of(
+                                  context,
+                                ).pop(); // Cierra el diálogo primero
+
+                                // Ejecuta la lógica de finalizar
+                                await PedidoHelper.finalizarPedido(
+                                  widget.mesaSeleccionada.id,
+                                  0,
+                                );
+
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ImcHomeScreen(),
+                                  ),
+                                );
+
+                                print("BOTÓN FINALIZAR PEDIDO PRESIONADO");
+                              },
+                            ),
+                          ],
+                        );
+                      },
                     );
-                    print("BOTÓN FINALIZAR PEDIDO PRESIONADO");
                   },
                   backgroundColor: Colors.black,
                   shape: RoundedRectangleBorder(

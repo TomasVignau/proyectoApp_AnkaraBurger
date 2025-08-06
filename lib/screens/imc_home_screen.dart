@@ -54,6 +54,7 @@ class _ImcHomeScreenState extends State<ImcHomeScreen> {
                     ),
                   ),
                   value: mesaSeleccionada,
+                  
                   items:
                       listaMesas.map((mesa) {
                         return DropdownMenuItem<Mesa>(
@@ -62,10 +63,11 @@ class _ImcHomeScreenState extends State<ImcHomeScreen> {
                             children: [
                               Text('Mesa ${mesa.id}'),
                               const SizedBox(width: 8),
+                              
                               Icon(
                                 mesa.estado == 0
-                                    ? Icons.event_available
-                                    : Icons.event_busy_rounded,
+                                    ? Icons.check_circle_rounded
+                                    : Icons.remove_circle_rounded,
                                 color:
                                     mesa.estado == 0
                                         ? Colors.green

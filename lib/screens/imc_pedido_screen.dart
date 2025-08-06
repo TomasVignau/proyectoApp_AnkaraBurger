@@ -556,7 +556,6 @@ class _ImcPedidoScreenState extends State<ImcPedidoScreen> {
                 ),
               ),
               pw.SizedBox(height: 10),
-              // Aquí deberías acceder al ID de la mesa directamente, no al objeto completo
               pw.Text('Número de mesa: ${widget.mesaSeleccionada.id}'),
               pw.SizedBox(height: 10),
               for (var element in widget.listaDeProductos)
