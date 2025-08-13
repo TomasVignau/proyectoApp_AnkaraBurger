@@ -280,11 +280,17 @@ class _ImcPag1ScreenState extends State<ImcPag1Screen> {
                                   context,
                                 ).pop(); // Cierra el diálogo primero
 
-                                // Ejecuta la lógica de finalizar
-                                await PedidoHelper.finalizarPedido(
-                                  widget.mesaSeleccionada.id,
-                                  0,
-                                );
+                                final productosEnPedido = await PedidoHelper.verPedido(widget.mesaSeleccionada.id,);
+
+                                double precioFinal = productosEnPedido.fold(0.0, (sum,p,) {
+                                  return sum +
+                                      (p.cantidadSeleccionada * p.precioUnitario);
+                                });
+
+                                await PedidoHelper.guardarPrecioFinalDelPedido(widget.mesaSeleccionada.id, precioFinal);
+
+                                 // Ejecuta la lógica de finalizar
+                                await PedidoHelper.finalizarPedido(widget.mesaSeleccionada.id,0,);
 
                                 Navigator.push(
                                   context,

@@ -4,8 +4,7 @@ import 'package:proyecto_app/core/app_Colors.dart'; // Para tus colores personal
 
 class Imc_pedidoHastaElMomento_screen extends StatelessWidget {
   final List<ListaDeProductos> listaDeProductos;
-  final int
-  mesaId; // Hacemos mesaId opcional, ya que puede que no siempre lo necesites aquí.
+  final int mesaId; // Hacemos mesaId opcional, ya que puede que no siempre lo necesites aquí.
 
   const Imc_pedidoHastaElMomento_screen({
     Key? key,

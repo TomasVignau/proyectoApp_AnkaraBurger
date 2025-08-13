@@ -69,9 +69,6 @@ class PedidoHelper {
 
     final response = await http.get(url);
 
-    print('Status code: ${response.statusCode}');
-    print('Raw response body: ${response.body}');
-
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       return data['success'] == true;
@@ -96,6 +93,26 @@ class PedidoHelper {
         throw Exception('Error al devolver al fecha y hora del pedido.');
       }
     }
+
+  static Future<bool> guardarPrecioFinalDelPedido(
+    int idMesa, double precioFinal
+  ) async {
+    final url = Uri.parse(
+      'http://10.0.2.2/database.php?accion=guardarPrecioFinal&idMesa=$idMesa&precioFinal=$precioFinal', //PARA ANDROID EMULATOR
+      //'http://192.168.0.71/database.php?accion=guardarPrecioFinal&idMesa=$idMesa&precioFinal=$precioFinal', //PARA DISPOSITIVOS CONECTADOS A LA RED
+      //'http://ankaraburger.kesug.com/database.php?accion=guardarPrecioFinal&idMesa=$idMesa&precioFinal=$precioFinal',
+    );
+
+    final response = await http.get(url);
+    
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['success'] == true;
+    } else {
+      throw Exception('Error al cargar el precio del pedido');
+    }
+    }
+
     
 }
   
