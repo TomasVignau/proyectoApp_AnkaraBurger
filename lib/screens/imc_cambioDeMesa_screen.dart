@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:proyecto_app/components/logoImageCenter.dart';
 import 'package:proyecto_app/components/mesa.dart';
 import 'package:proyecto_app/database/mesa_helper.dart';
-import 'package:proyecto_app/screens/imc_cambioDeMesa_screen.dart';
-import 'package:proyecto_app/screens/imc_pag1_screen.dart';
+import 'package:proyecto_app/database/pedido_helper.dart';
+import 'package:proyecto_app/screens/imc_home_screen.dart';
 
-class ImcHomeScreen extends StatefulWidget {
-  const ImcHomeScreen({super.key});
+class ImcCambioDeMesaScreen extends StatefulWidget {
+  final Mesa mesaARealizarElCambio;
+
+  const ImcCambioDeMesaScreen({super.key, required this.mesaARealizarElCambio});
 
   @override
-  State<ImcHomeScreen> createState() => _ImcHomeScreenState();
+  State<ImcCambioDeMesaScreen> createState() => _ImcCambioDeMesaScreenState();
 }
 
-class _ImcHomeScreenState extends State<ImcHomeScreen> {
+class _ImcCambioDeMesaScreenState extends State<ImcCambioDeMesaScreen> {
   List<Mesa> listaMesas = [];
   Mesa? mesaSeleccionada;
 
@@ -26,7 +27,9 @@ class _ImcHomeScreenState extends State<ImcHomeScreen> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.center, // Alinea a la izquierda
         children: [
-          Logoimagecenter(),
+          
+          Text("MESA A REALIZAR EL CAMBIO: Mesa ${widget.mesaARealizarElCambio.id}",
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, backgroundColor: const Color.fromARGB(255, 214, 143, 61), fontSize: 20)),
 
           SizedBox(height: 8),
 
@@ -43,13 +46,13 @@ class _ImcHomeScreenState extends State<ImcHomeScreen> {
                   return const Text('No hay mesas disponibles');
                 }
 
-                listaMesas = snapshot.data!;
+                listaMesas = snapshot.data!.where((mesa) => mesa.estado == 0).toList();
 
                 return DropdownButtonFormField<Mesa>(
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: Colors.white,
-                    labelText: "Selecciona la mesa",
+                    labelText: "Selecciona la mesa a cambiar",
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -105,7 +108,7 @@ class _ImcHomeScreenState extends State<ImcHomeScreen> {
                           (context) => AlertDialog(
                             title: Text("Error"),
                             content: Text(
-                              "Debe seleccionar una mesa antes de iniciar la comanda.",
+                              "Debe seleccionar una mesa antes de realizar el cambio.",
                             ),
                             actions: [
                               TextButton(
@@ -116,16 +119,15 @@ class _ImcHomeScreenState extends State<ImcHomeScreen> {
                           ),
                     );
                   } else {
+                    PedidoHelper.realizarCambioDeMesa(widget.mesaARealizarElCambio.id, mesaSeleccionada!.id);
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder:
-                            (context) => ImcPag1Screen(
-                              mesaSeleccionada: mesaSeleccionada!,
-                            ),
+                            (context) => ImcHomeScreen(),
                       ),
                     );
-                    print("COMANDA INICIADA");
+                    print("CAMBIO REALIZADO");
                   }
                 },
 
@@ -138,94 +140,7 @@ class _ImcHomeScreenState extends State<ImcHomeScreen> {
                     const Color.fromARGB(255, 0, 0, 0),
                   ),
                 ),
-                child: Text("INICIAR COMANDA"),
-              ),
-            ),
-          ),
-
-          Spacer(),
-
-          // AGREGAR BOTÓN PARA CAMBIO DE MESA. (EJEMPLO MESA 1 SE PASAN A MESA 2 (SI ESTÁ DISPONIBLE))
-          Positioned(
-            left: 16, // Margen desde la izquierda
-            bottom: 16, // Margen desde la parte inferior
-            child: ElevatedButton(
-              onPressed: () async {
-                print(mesaSeleccionada?.estado);
-                if (mesaSeleccionada?.estado == 0 && mesaSeleccionada == null) { //CHEQUEAR PORQUE NO ME TOMA EL ESTADO DE LA MESA.
-                  showDialog(
-                      context: context,
-                      builder:
-                          (context) => AlertDialog(
-                            title: Text("Error"),
-                            content: Text(
-                              "Debe seleccionar una mesa que tenga un pedido activo antes de realizar el cambio de mesa.",
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: Text("OK"),
-                              ),
-                            ],
-                          ),
-                    );
-                }else{
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder:
-                        (context) =>
-                        ImcCambioDeMesaScreen(mesaARealizarElCambio: mesaSeleccionada!),
-                  ),
-                );}
-
-
-                print("BOTÓN CAMBIO DE MESA PRESIONADO");
-              },
-              style: ButtonStyle(
-                shape: WidgetStateProperty.all(RoundedRectangleBorder()),
-                backgroundColor: WidgetStateProperty.all(
-                  const Color.fromARGB(255, 214, 143, 61),
-                ),
-                foregroundColor: WidgetStateProperty.all(
-                  const Color.fromARGB(255, 0, 0, 0),
-                ),
-              ),
-              child: const Text(
-                "CAMBIO DE MESA",
-                style: TextStyle(
-                  fontSize: 10,
-                  fontStyle: FontStyle.italic,
-                  color: Colors.black,
-                ),
-              ),
-            ),
-          ),
-
-          Spacer(),
-
-          Container(
-            decoration: BoxDecoration(
-              color: const Color.fromARGB(127, 255, 243, 174),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0),
-              child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment
-                        .start, // También aquí, por si el texto está en una subcolumna
-                children: [
-                  Text(
-                    "Dirección: Carrer d'Albert Einstein, 10, 08860 Castelldefels, Barcelona, España",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  SizedBox(height: 8), // Espacio entre los textos
-                  Text(
-                    "Teléfono: +34 686 30 47 38",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ],
+                child: Text("REALIZAR CAMBIO DE MESA"),
               ),
             ),
           ),
@@ -236,10 +151,19 @@ class _ImcHomeScreenState extends State<ImcHomeScreen> {
 
   AppBar estiloAppBar() {
     return AppBar(
-      title: Text("ANKARA BURGER"),
+      title: Text("CAMBIO DE MESA"),
       backgroundColor: Colors.black,
       foregroundColor: Colors.white,
-      actions: [IconButton(onPressed: () {}, icon: Icon(Icons.menu_rounded))],
+      actions: [ Padding(
+          padding: const EdgeInsets.only(right: 10.0),
+          child: Image.asset('assets/images/LogoAnkara.png', height: 75),
+        ),],
     );
   }
 }
+
+
+//LÓGICA DEL BOTÓN.
+//Si la mesa tiene un pedido activo, se puede realizar el cambio si y solo si a la mesa a la que se cambien este sin un pedido activo.
+//Lo que hace en la base de datos, es cambiar en pedido el número de mesa al que tiene asignado.
+//En mesa se le cambia el estado y listo!

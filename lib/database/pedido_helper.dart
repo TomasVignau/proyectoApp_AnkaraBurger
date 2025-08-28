@@ -113,6 +113,24 @@ class PedidoHelper {
     }
     }
 
+  static Future<bool> realizarCambioDeMesa(
+    int idMesaActual, int idMesaNueva
+  ) async {
+    final url = Uri.parse(
+      'http://10.0.2.2/database.php?accion=realizarCambioDeMesa&idMesaActual=$idMesaActual&idMesaNueva=$idMesaNueva', //PARA ANDROID EMULATOR
+      //'http://192.168.0.71/database.php?accion=realizarCambioDeMesa&idMesaActual=$idMesaActual&idMesaNueva=$idMesaNueva', //PARA DISPOSITIVOS CONECTADOS A LA RED
+      //'http://ankaraburger.kesug.com/database.php?accion=realizarCambioDeMesa&idMesaActual=$idMesaActual&idMesaNueva=$idMesaNueva',
+    );
+
+    final response = await http.get(url);
+    
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['success'] == true;
+    } else {
+      throw Exception('Error al realizar el cambio de mesa.');
+    }
+    }
     
 }
   

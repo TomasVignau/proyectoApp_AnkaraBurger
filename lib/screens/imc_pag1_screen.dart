@@ -139,7 +139,6 @@ class ImcPag1Screen extends StatefulWidget {
 }
 
 class _ImcPag1ScreenState extends State<ImcPag1Screen> {
-  // Esta declaración ya es correcta
   List<ListaDeProductos> listadoDeProductos = [];
   int totalCantidadSeleccionada = 0;
 
