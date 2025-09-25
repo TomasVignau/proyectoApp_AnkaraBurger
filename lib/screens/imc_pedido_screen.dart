@@ -260,8 +260,8 @@ import 'package:proyecto_app/core/app_Colors.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
-import 'package:proyecto_app/database/mesa_helper.dart';
-import 'package:proyecto_app/database/pedido_helper.dart';
+import 'package:proyecto_app/databaseHelpers/mesa_helper.dart';
+import 'package:proyecto_app/databaseHelpers/pedido_helper.dart';
 import 'package:proyecto_app/screens/imc_home_screen.dart';
 
 class ImcPedidoScreen extends StatefulWidget {
@@ -288,12 +288,15 @@ class _ImcPedidoScreenState extends State<ImcPedidoScreen> {
 
     // Filtramos solo los productos con cantidad seleccionada > 0 para mostrarlos
     final productosMostrables =
-        widget.listaDeProductos.where((p) => p.cantidadSeleccionada > 0).toList();
+        widget.listaDeProductos
+            .where((p) => p.cantidadSeleccionada > 0)
+            .toList();
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: estiloAppBar(),
-      body: Column( // Usamos Column para poder poner el resumen y el botón al final
+      body: Column(
+        // Usamos Column para poder poner el resumen y el botón al final
         children: [
           Container(
             padding: const EdgeInsets.all(16),
@@ -308,140 +311,173 @@ class _ImcPedidoScreenState extends State<ImcPedidoScreen> {
               textAlign: TextAlign.center,
             ),
           ),
-          Expanded( // Expanded para que el ListView ocupe el espacio restante
-            child: productosMostrables.isEmpty
-                ? const Center(
-                    child: Text(
-                      'No hay productos seleccionados para esta mesa.',
-                      style: TextStyle(fontSize: 18, color: Colors.black54),
-                    ),
-                  )
-                : ListView.builder(
-                    itemCount: productosMostrables.length,
-                    itemBuilder: (context, index) {
-                      final element = productosMostrables[index];
-                      return Card( // Usamos Card para el diseño prolijo
-                        margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                        elevation: 4, // Sutil sombra
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12.0),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Sección de la Imagen (si tienes una URL de imagen en ListaDeProductos)
-                              if (element.urlImagen.isNotEmpty) // Asumiendo que ListaDeProductos tiene urlImagen
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(8.0),
-                                  child: Image.asset( // Usamos Image.network si la URL es remota
-                                    element.urlImagen,
+          Expanded(
+            // Expanded para que el ListView ocupe el espacio restante
+            child:
+                productosMostrables.isEmpty
+                    ? const Center(
+                      child: Text(
+                        'No hay productos seleccionados para esta mesa.',
+                        style: TextStyle(fontSize: 18, color: Colors.black54),
+                      ),
+                    )
+                    : ListView.builder(
+                      itemCount: productosMostrables.length,
+                      itemBuilder: (context, index) {
+                        final element = productosMostrables[index];
+                        return Card(
+                          // Usamos Card para el diseño prolijo
+                          margin: const EdgeInsets.symmetric(
+                            vertical: 8.0,
+                            horizontal: 16.0,
+                          ),
+                          elevation: 4, // Sutil sombra
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12.0),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Sección de la Imagen (si tienes una URL de imagen en ListaDeProductos)
+                                if (element
+                                    .urlImagen
+                                    .isNotEmpty) // Asumiendo que ListaDeProductos tiene urlImagen
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(8.0),
+                                    child: Image.asset(
+                                      // Usamos Image.network si la URL es remota
+                                      element.urlImagen,
+                                      width: 70,
+                                      height: 70,
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (context, error, stackTrace) =>
+                                              const Icon(
+                                                Icons.broken_image,
+                                                size: 70,
+                                                color: Colors.grey,
+                                              ),
+                                    ),
+                                  )
+                                else
+                                  Container(
+                                    // Placeholder si no hay imagen
                                     width: 70,
                                     height: 70,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) =>
-                                        const Icon(Icons.broken_image, size: 70, color: Colors.grey),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[200],
+                                      borderRadius: BorderRadius.circular(8.0),
+                                    ),
+                                    child: const Icon(
+                                      Icons.fastfood,
+                                      size: 35,
+                                      color: Colors.grey,
+                                    ),
                                   ),
-                                )
-                              else
-                                Container( // Placeholder si no hay imagen
-                                  width: 70,
-                                  height: 70,
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey[200],
-                                    borderRadius: BorderRadius.circular(8.0),
-                                  ),
-                                  child: const Icon(Icons.fastfood, size: 35, color: Colors.grey),
-                                ),
-                              const SizedBox(width: 12),
+                                const SizedBox(width: 12),
 
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          element.nombreProducto,
-                                          style: const TextStyle(
-                                            fontSize: 18,
-                                            color: Colors.black,
-                                            fontWeight: FontWeight.bold,
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            element.nombreProducto,
+                                            style: const TextStyle(
+                                              fontSize: 18,
+                                              color: Colors.black,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          Text(
+                                            "x${element.cantidadSeleccionada}",
+                                            style: const TextStyle(
+                                              fontSize: 18,
+                                              color: Colors.black,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 6),
+                                      Text(
+                                        'Precio Unitario: €${element.precioUnitario.toStringAsFixed(2)}',
+                                        style: const TextStyle(
+                                          fontSize: 15,
+                                          color: Colors.black54,
+                                        ),
+                                      ),
+                                      Text(
+                                        'Subtotal: €${(element.precioUnitario * element.cantidadSeleccionada).toStringAsFixed(2)}',
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.green,
+                                        ),
+                                      ),
+                                      // Ingredientes del producto
+                                      if (element.ingredientes.isNotEmpty)
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                            top: 8.0,
+                                          ),
+                                          child: Wrap(
+                                            spacing: 8,
+                                            runSpacing: 4,
+                                            children:
+                                                element.ingredientes.entries.map((
+                                                  entry,
+                                                ) {
+                                                  final nombre = entry.key;
+                                                  final cantidad = entry.value;
+
+                                                  Color color;
+                                                  TextDecoration decoracion =
+                                                      TextDecoration.none;
+
+                                                  if (cantidad == 0) {
+                                                    color = Colors.red;
+                                                    decoracion =
+                                                        TextDecoration
+                                                            .lineThrough;
+                                                  } else if (cantidad == 1) {
+                                                    color = Colors.grey[600]!;
+                                                  } else {
+                                                    color =
+                                                        Colors
+                                                            .blue[700]!; // Color para ingredientes extra
+                                                  }
+
+                                                  return Text(
+                                                    cantidad > 1
+                                                        ? "$nombre x$cantidad"
+                                                        : (cantidad == 0
+                                                            ? nombre
+                                                            : nombre), // Muestra "SIN" si cantidad es 0
+                                                    style: TextStyle(
+                                                      fontSize: 14,
+                                                      color: color,
+                                                      decoration: decoracion,
+                                                    ),
+                                                  );
+                                                }).toList(),
                                           ),
                                         ),
-                                        Text(
-                                          "x${element.cantidadSeleccionada}",
-                                          style: const TextStyle(
-                                            fontSize: 18,
-                                            color: Colors.black,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      'Precio Unitario: €${element.precioUnitario.toStringAsFixed(2)}',
-                                      style: const TextStyle(
-                                        fontSize: 15,
-                                        color: Colors.black54,
-                                      ),
-                                    ),
-                                    Text(
-                                      'Subtotal: €${(element.precioUnitario * element.cantidadSeleccionada).toStringAsFixed(2)}',
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.green,
-                                      ),
-                                    ),
-                                    // Ingredientes del producto
-                                    if (element.ingredientes.isNotEmpty)
-                                      Padding(
-                                        padding: const EdgeInsets.only(top: 8.0),
-                                        child: Wrap(
-                                          spacing: 8,
-                                          runSpacing: 4,
-                                          children: element.ingredientes.entries.map((entry) {
-                                            final nombre = entry.key;
-                                            final cantidad = entry.value;
-
-                                            Color color;
-                                            TextDecoration decoracion = TextDecoration.none;
-
-                                            if (cantidad == 0) {
-                                              color = Colors.red;
-                                              decoracion = TextDecoration.lineThrough;
-                                            } else if (cantidad == 1) {
-                                              color = Colors.grey[600]!;
-                                            } else {
-                                              color = Colors.blue[700]!; // Color para ingredientes extra
-                                            }
-
-                                            return Text(
-                                              cantidad > 1
-                                                  ? "$nombre x$cantidad"
-                                                  : (cantidad == 0 ? nombre : nombre), // Muestra "SIN" si cantidad es 0
-                                              style: TextStyle(
-                                                fontSize: 14,
-                                                color: color,
-                                                decoration: decoracion,
-                                              ),
-                                            );
-                                          }).toList(),
-                                        ),
-                                      ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                      );
-                    },
-                  ),
+                        );
+                      },
+                    ),
           ),
           // Sección de Resumen del Pedido y Botón de Confirmar (abajo fijo)
           if (productosMostrables.isNotEmpty) // Solo mostrar si hay productos
@@ -484,17 +520,30 @@ class _ImcPedidoScreenState extends State<ImcPedidoScreen> {
                   ElevatedButton(
                     onPressed: () {
                       imprimirConImpresoraComun(); // Tu lógica de impresión
-                      MesaHelper.cambiarEstadoMesa(widget.mesaSeleccionada.id, 1);
-                      final productosAActualizar = widget.listaDeProductos.where((p) => p.cantidadSeleccionada > 0).toList();
-                      PedidoHelper.actualizarPedido(productosAActualizar, widget.mesaSeleccionada);
+                      final productosAActualizar =
+                          widget.listaDeProductos
+                              .where((p) => p.cantidadSeleccionada > 0)
+                              .toList();
+                      for (var p in productosAActualizar) {
+                        print(
+                          'Producto: ${p.nombreProducto}, id_Producto: ${p.idProducto}, cantidad: ${p.cantidadSeleccionada}',
+                        );
+                      }
+                      PedidoHelper.actualizarPedido(
+                        productosAActualizar,
+                        widget.mesaSeleccionada,
+                      );
+                      MesaHelper.cambiarEstadoMesa(
+                        widget.mesaSeleccionada.id,
+                        1,
+                      );
                       // Opcional: Navegar de vuelta o mostrar un mensaje de éxito
                       Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder:
-                            (context) => ImcHomeScreen(),
-                      ),
-                    );
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ImcHomeScreen(),
+                        ),
+                      );
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.accent,
@@ -528,10 +577,7 @@ class _ImcPedidoScreenState extends State<ImcPedidoScreen> {
       actions: [
         Padding(
           padding: const EdgeInsets.only(right: 10.0),
-          child: Image.asset(
-            'assets/images/LogoAnkara.png',
-            height: 75,
-          ),
+          child: Image.asset('assets/images/LogoAnkara.png', height: 75),
         ),
       ],
     );
@@ -574,8 +620,8 @@ class _ImcPedidoScreenState extends State<ImcPedidoScreen> {
                       )
                     else if (entry.value > 1)
                       pw.Text('     + ${entry.key} x${entry.value}'),
-                    // else if (entry.value == 1) // Puedes optar por no mostrar los ingredientes "normales" para un ticket más limpio
-                    //   pw.Text('     + ${entry.key}'),
+                  // else if (entry.value == 1) // Puedes optar por no mostrar los ingredientes "normales" para un ticket más limpio
+                  //   pw.Text('     + ${entry.key}'),
                   pw.SizedBox(height: 10),
                 ],
             ],

@@ -122,12 +122,15 @@ import 'package:flutter/material.dart';
 import 'package:proyecto_app/components/mesa.dart';
 import 'package:proyecto_app/components/producto.dart'; // Tu widget Producto
 import 'package:proyecto_app/components/listaDeProductos.dart'; // Tu modelo de datos ListaDeProductos
-import 'package:proyecto_app/database/mesa_helper.dart';
-import 'package:proyecto_app/database/pedido_helper.dart';
-import 'package:proyecto_app/database/producto_helper.dart';
+import 'package:proyecto_app/databaseHelpers/mesa_helper.dart';
+import 'package:proyecto_app/databaseHelpers/pedido_helper.dart';
+import 'package:proyecto_app/databaseHelpers/producto_helper.dart';
 import 'package:proyecto_app/screens/imc_home_screen.dart';
 import 'package:proyecto_app/screens/imc_pedido_screen.dart';
 import 'package:proyecto_app/screens/imc_pedidoHastaElMomento_screen.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 
 class ImcPag1Screen extends StatefulWidget {
   final Mesa mesaSeleccionada;
@@ -279,17 +282,18 @@ class _ImcPag1ScreenState extends State<ImcPag1Screen> {
                                   context,
                                 ).pop(); // Cierra el diálogo primero
 
-                                final productosEnPedido = await PedidoHelper.verPedido(widget.mesaSeleccionada.id,);
+                                List<ListaDeProductos> productosEnPedido = await PedidoHelper.verPedido(widget.mesaSeleccionada.id,);
 
-                                double precioFinal = productosEnPedido.fold(0.0, (sum,p,) {
-                                  return sum +
-                                      (p.cantidadSeleccionada * p.precioUnitario);
-                                });
+                                double precioFinal = productosEnPedido.fold(0.0, (double sum, ListaDeProductos p) {
+                                  return sum + (p.cantidadSeleccionada * p.precioUnitario);});
+
 
                                 await PedidoHelper.guardarPrecioFinalDelPedido(widget.mesaSeleccionada.id, precioFinal);
 
+                                imprimirConImpresoraComun(productosEnPedido, precioFinal);
+
                                  // Ejecuta la lógica de finalizar
-                                await PedidoHelper.finalizarPedido(widget.mesaSeleccionada.id,0,);
+                                await PedidoHelper.finalizarPedido(widget.mesaSeleccionada.id);
 
                                 Navigator.push(
                                   context,
@@ -426,4 +430,101 @@ class _ImcPag1ScreenState extends State<ImcPag1Screen> {
       producto.ingredientes = nuevosIngredientes;
     });
   }
+
+  void imprimirConImpresoraComun(List<ListaDeProductos> productosEnPedido, double total) async {
+  final pdf = pw.Document();
+
+  double total = 0;
+
+  pdf.addPage(
+    pw.Page(
+      margin: const pw.EdgeInsets.all(20),
+      build: (pw.Context context) {
+        return pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Center(
+              child: pw.Text(
+                '*** Pedido Ankara ***',
+                style: pw.TextStyle(
+                  fontSize: 18,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+            ),
+            pw.SizedBox(height: 10),
+            pw.Text('Número de mesa: ${widget.mesaSeleccionada.id}'),
+            pw.Divider(),
+            // Tabla de productos
+            pw.Table(
+              border: null,
+              columnWidths: {
+                0: const pw.FlexColumnWidth(4), // Producto
+                1: const pw.FlexColumnWidth(1), // Cantidad
+                2: const pw.FlexColumnWidth(2), // Precio
+                3: const pw.FlexColumnWidth(2), // Subtotal
+              },
+              children: [
+                // Encabezados
+                pw.TableRow(
+                  children: [
+                    pw.Text('Producto',
+                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                    pw.Text('Cant.',
+                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                    pw.Text('Precio',
+                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                    pw.Text('Subtotal',
+                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                  ],
+                ),
+                // Productos
+                ...productosEnPedido.where((p) => p.cantidadSeleccionada > 0).map((p) {
+                  final subtotal = p.precioUnitario * p.cantidadSeleccionada;
+                  total += subtotal;
+                  return pw.TableRow(
+                    children: [
+                      pw.Text(p.nombreProducto),
+                      pw.Text('${p.cantidadSeleccionada}'),
+                      pw.Text('\$${p.precioUnitario.toStringAsFixed(2)}'),
+                      pw.Text('\$${subtotal.toStringAsFixed(2)}'),
+                    ],
+                  );
+                }),
+              ],
+            ),
+            pw.SizedBox(height: 10),
+            pw.Divider(),
+            // Total
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.end,
+              children: [
+                pw.Text(
+                  'TOTAL: ',
+                  style: pw.TextStyle(
+                    fontWeight: pw.FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+                pw.Text(
+                  '\$${total.toStringAsFixed(2)}',
+                  style: pw.TextStyle(
+                    fontWeight: pw.FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    ),
+  );
+
+  await Printing.layoutPdf(
+    onLayout: (PdfPageFormat format) async => pdf.save(),
+  );
+}
+
+
 }

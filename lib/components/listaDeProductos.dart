@@ -1,4 +1,5 @@
 class ListaDeProductos {
+  int? idProducto;
   String nombreProducto;
   String urlImagen;
   String descripcionProducto;
@@ -7,6 +8,7 @@ class ListaDeProductos {
   double precioUnitario;
 
   ListaDeProductos({
+    this.idProducto,
     required this.nombreProducto,
     required this.urlImagen,
     required this.descripcionProducto,
@@ -15,27 +17,28 @@ class ListaDeProductos {
     required this.precioUnitario,
   });
 
-  // Agrega este factory constructor
   factory ListaDeProductos.fromJson(Map<String, dynamic> json) {
     return ListaDeProductos(
+      idProducto: json['id_Producto'] != null ? int.tryParse(json['id_Producto'].toString()) : null,
       nombreProducto: json['nombre_Producto'] as String,
-      urlImagen: json['imagen'] as String, // Asegúrate que el campo JSON sea 'imagen' o 'Imagen'
+      urlImagen: json['imagen'] as String,
       descripcionProducto: json['descripcion'] as String,
-      cantidadSeleccionada: json['cantidad_seleccionada'] ?? 0, // Al cargar desde la API, la cantidad inicial es 0
+      cantidadSeleccionada: json['cantidad_seleccionada'] ?? 0,
       ingredientes: (json['ingredientes'] as Map<String, dynamic>).cast<String, int>(),
       precioUnitario: (json['precio_unitario'] as num).toDouble(),
     );
   }
 
   Map<String, dynamic> toJson() {
-  return {
-    'nombreProducto': nombreProducto,
-    'urlImagen': urlImagen,
-    'descripcionProducto': descripcionProducto,
-    'cantidadSeleccionada': cantidadSeleccionada,
-    'ingredientes': ingredientes,
-    'precio': precioUnitario,
-  };
-}
-
+    final map = {
+      'nombreProducto': nombreProducto,
+      'urlImagen': urlImagen,
+      'descripcionProducto': descripcionProducto,
+      'cantidadSeleccionada': cantidadSeleccionada,
+      'ingredientes': ingredientes,
+      'precio': precioUnitario,
+    };
+    if (idProducto != null) map['id_Producto'] = idProducto!;
+    return map;
+  }
 }

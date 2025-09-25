@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:proyecto_app/components/mesa.dart';
-import 'package:proyecto_app/database/mesa_helper.dart';
-import 'package:proyecto_app/database/pedido_helper.dart';
+import 'package:proyecto_app/databaseHelpers/mesa_helper.dart';
 import 'package:proyecto_app/screens/imc_home_screen.dart';
 
 class ImcCambioDeMesaScreen extends StatefulWidget {
@@ -119,7 +118,7 @@ class _ImcCambioDeMesaScreenState extends State<ImcCambioDeMesaScreen> {
                           ),
                     );
                   } else {
-                    PedidoHelper.realizarCambioDeMesa(widget.mesaARealizarElCambio.id, mesaSeleccionada!.id);
+                    MesaHelper.realizarCambioDeMesa(widget.mesaARealizarElCambio.id, mesaSeleccionada!.id);
                     Navigator.push(
                       context,
                       MaterialPageRoute(

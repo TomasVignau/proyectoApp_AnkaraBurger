@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:proyecto_app/components/logoImageCenter.dart';
 import 'package:proyecto_app/components/mesa.dart';
-import 'package:proyecto_app/database/mesa_helper.dart';
+import 'package:proyecto_app/databaseHelpers/mesa_helper.dart';
 import 'package:proyecto_app/screens/imc_cambioDeMesa_screen.dart';
 import 'package:proyecto_app/screens/imc_pag1_screen.dart';
 
@@ -138,28 +138,32 @@ class _ImcHomeScreenState extends State<ImcHomeScreen> {
                     const Color.fromARGB(255, 0, 0, 0),
                   ),
                 ),
-                child: Text("INICIAR COMANDA"),
+                child: Text(
+                  mesaSeleccionada?.estado == 0
+                      ? "INICIAR COMANDA"
+                      : "CONTINUAR COMANDA",
+                ), //Si la mesa tiene un pedido activo; muestra el mensaje CONTINUAR COMANDA.
+                //Si no, muestra INICIAR COMANDA.
               ),
             ),
           ),
 
-          Spacer(),
-
-          // AGREGAR BOTÓN PARA CAMBIO DE MESA. (EJEMPLO MESA 1 SE PASAN A MESA 2 (SI ESTÁ DISPONIBLE))
-          Positioned(
-            left: 16, // Margen desde la izquierda
-            bottom: 16, // Margen desde la parte inferior
-            child: ElevatedButton(
-              onPressed: () async {
-                print(mesaSeleccionada?.estado);
-                if (mesaSeleccionada?.estado == 0 && mesaSeleccionada == null) { //CHEQUEAR PORQUE NO ME TOMA EL ESTADO DE LA MESA.
-                  showDialog(
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: ElevatedButton(
+                onPressed: () async {
+                  //print(mesaSeleccionada?.estado);
+                  if (mesaSeleccionada?.estado == 0 ||
+                      mesaSeleccionada == null) {
+                    showDialog(
                       context: context,
                       builder:
                           (context) => AlertDialog(
                             title: Text("Error"),
                             content: Text(
-                              "Debe seleccionar una mesa que tenga un pedido activo antes de realizar el cambio de mesa.",
+                              "Debe seleccionar una mesa y asegurarse que tenga un pedido activo antes de realizar el cambio de mesa.",
                             ),
                             actions: [
                               TextButton(
@@ -169,35 +173,30 @@ class _ImcHomeScreenState extends State<ImcHomeScreen> {
                             ],
                           ),
                     );
-                }else{
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder:
-                        (context) =>
-                        ImcCambioDeMesaScreen(mesaARealizarElCambio: mesaSeleccionada!),
+                  } else {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (context) => ImcCambioDeMesaScreen(
+                              mesaARealizarElCambio: mesaSeleccionada!,
+                            ),
+                      ),
+                    );
+                  }
+
+                  print("BOTÓN CAMBIO DE MESA PRESIONADO");
+                },
+                style: ButtonStyle(
+                  shape: WidgetStateProperty.all(RoundedRectangleBorder()),
+                  backgroundColor: WidgetStateProperty.all(
+                    const Color.fromARGB(255, 214, 143, 61),
                   ),
-                );}
-
-
-                print("BOTÓN CAMBIO DE MESA PRESIONADO");
-              },
-              style: ButtonStyle(
-                shape: WidgetStateProperty.all(RoundedRectangleBorder()),
-                backgroundColor: WidgetStateProperty.all(
-                  const Color.fromARGB(255, 214, 143, 61),
+                  foregroundColor: WidgetStateProperty.all(
+                    const Color.fromARGB(255, 0, 0, 0),
+                  ),
                 ),
-                foregroundColor: WidgetStateProperty.all(
-                  const Color.fromARGB(255, 0, 0, 0),
-                ),
-              ),
-              child: const Text(
-                "CAMBIO DE MESA",
-                style: TextStyle(
-                  fontSize: 10,
-                  fontStyle: FontStyle.italic,
-                  color: Colors.black,
-                ),
+                child: Text("CAMBIO DE MESA"),
               ),
             ),
           ),
@@ -239,7 +238,12 @@ class _ImcHomeScreenState extends State<ImcHomeScreen> {
       title: Text("ANKARA BURGER"),
       backgroundColor: Colors.black,
       foregroundColor: Colors.white,
-      actions: [IconButton(onPressed: () {}, icon: Icon(Icons.menu_rounded))],
+      actions: [
+        Padding(
+          padding: const EdgeInsets.only(right: 10.0),
+          child: Image.asset('assets/images/LogoAnkara.png', height: 75),
+        ),
+      ],
     );
   }
 }
