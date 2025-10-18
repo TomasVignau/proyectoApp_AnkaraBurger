@@ -101,7 +101,6 @@ class Producto extends StatelessWidget {
   }
 }*/
 
-
 import 'package:flutter/material.dart';
 import 'package:proyecto_app/core/app_Colors.dart';
 import 'package:proyecto_app/screens/imc_editarHamburguesa_screen.dart';
@@ -150,7 +149,7 @@ class _ProductoState extends State<Producto> {
       padding: const EdgeInsets.only(top: 16, right: 8, left: 8, bottom: 16),
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.secondary,
+          color: const Color.fromARGB(255, 238, 190, 32),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
@@ -163,6 +162,14 @@ class _ProductoState extends State<Producto> {
                 width: 60,
                 height: 60,
                 fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    width: 60,
+                    height: 60,
+                    color: Colors.grey,
+                    child: const Icon(Icons.image_not_supported),
+                  );
+                },
               ),
             ),
             const SizedBox(width: 8),
@@ -184,7 +191,11 @@ class _ProductoState extends State<Producto> {
                   ),
                   Text(
                     'Precio: \$${widget.precio}',
-                    style: const TextStyle(fontSize: 14, color: Colors.black54, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Colors.black54,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ],
               ),
@@ -268,9 +279,9 @@ class _ProductoState extends State<Producto> {
                             );
                           }
 
-                          print(
+                          /*print(
                             "Ingredientes modificados: $ingredientesActuales",
-                          );
+                          );*/
                         }
                       },
                       icon: const Icon(Icons.edit, color: Colors.red),

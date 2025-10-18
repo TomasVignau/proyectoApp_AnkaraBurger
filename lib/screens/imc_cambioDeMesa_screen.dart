@@ -26,9 +26,15 @@ class _ImcCambioDeMesaScreenState extends State<ImcCambioDeMesaScreen> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.center, // Alinea a la izquierda
         children: [
-          
-          Text("MESA A REALIZAR EL CAMBIO: Mesa ${widget.mesaARealizarElCambio.id}",
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, backgroundColor: const Color.fromARGB(255, 214, 143, 61), fontSize: 20)),
+          Text(
+            "MESA A REALIZAR EL CAMBIO: Mesa ${widget.mesaARealizarElCambio.id}",
+            style: TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.bold,
+              backgroundColor: const Color.fromARGB(255, 214, 143, 61),
+              fontSize: 20,
+            ),
+          ),
 
           SizedBox(height: 8),
 
@@ -45,9 +51,16 @@ class _ImcCambioDeMesaScreenState extends State<ImcCambioDeMesaScreen> {
                   return const Text('No hay mesas disponibles');
                 }
 
-                listaMesas = snapshot.data!.where((mesa) => mesa.estado == 0).toList();
+                listaMesas =
+                    snapshot.data!.where((mesa) => mesa.estado == 0).toList();
 
-                return DropdownButtonFormField<Mesa>(
+                // 🔧 Aseguramos que la mesa seleccionada siga existiendo en la lista filtrada
+                if (mesaSeleccionada != null &&
+                    !listaMesas.any((m) => m.id == mesaSeleccionada!.id)) {
+                  mesaSeleccionada = null;
+                }
+
+                return DropdownButtonFormField<int>(
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: Colors.white,
@@ -56,17 +69,15 @@ class _ImcCambioDeMesaScreenState extends State<ImcCambioDeMesaScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  value: mesaSeleccionada,
-
+                  value: mesaSeleccionada?.id, // usamos el id
                   items:
                       listaMesas.map((mesa) {
-                        return DropdownMenuItem<Mesa>(
-                          value: mesa,
+                        return DropdownMenuItem<int>(
+                          value: mesa.id, // usamos el id como valor
                           child: Row(
                             children: [
                               Text('Mesa ${mesa.id}'),
                               const SizedBox(width: 8),
-
                               Icon(
                                 mesa.estado == 0
                                     ? Icons.check_circle_rounded
@@ -81,9 +92,11 @@ class _ImcCambioDeMesaScreenState extends State<ImcCambioDeMesaScreen> {
                           ),
                         );
                       }).toList(),
-                  onChanged: (Mesa? nuevaMesa) {
+                  onChanged: (int? nuevoId) {
                     setState(() {
-                      mesaSeleccionada = nuevaMesa;
+                      mesaSeleccionada = listaMesas.firstWhere(
+                        (m) => m.id == nuevoId,
+                      );
                     });
                   },
                 );
@@ -118,13 +131,13 @@ class _ImcCambioDeMesaScreenState extends State<ImcCambioDeMesaScreen> {
                           ),
                     );
                   } else {
-                    MesaHelper.realizarCambioDeMesa(widget.mesaARealizarElCambio.id, mesaSeleccionada!.id);
+                    MesaHelper.realizarCambioDeMesa(
+                      widget.mesaARealizarElCambio.id,
+                      mesaSeleccionada!.id,
+                    );
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                        builder:
-                            (context) => ImcHomeScreen(),
-                      ),
+                      MaterialPageRoute(builder: (context) => ImcHomeScreen()),
                     );
                     print("CAMBIO REALIZADO");
                   }
@@ -153,10 +166,12 @@ class _ImcCambioDeMesaScreenState extends State<ImcCambioDeMesaScreen> {
       title: Text("CAMBIO DE MESA"),
       backgroundColor: Colors.black,
       foregroundColor: Colors.white,
-      actions: [ Padding(
+      actions: [
+        Padding(
           padding: const EdgeInsets.only(right: 10.0),
           child: Image.asset('assets/images/LogoAnkara.png', height: 75),
-        ),],
+        ),
+      ],
     );
   }
 }

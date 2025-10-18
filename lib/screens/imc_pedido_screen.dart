@@ -583,7 +583,7 @@ class _ImcPedidoScreenState extends State<ImcPedidoScreen> {
     );
   }
 
-  void imprimirConImpresoraComun() async {
+  /*void imprimirConImpresoraComun() async {
     final pdf = pw.Document();
 
     pdf.addPage(
@@ -624,6 +624,159 @@ class _ImcPedidoScreenState extends State<ImcPedidoScreen> {
                   //   pw.Text('     + ${entry.key}'),
                   pw.SizedBox(height: 10),
                 ],
+            ],
+          );
+        },
+      ),
+    );
+
+    await Printing.layoutPdf(
+      onLayout: (PdfPageFormat format) async => pdf.save(),
+    );
+  }*/
+
+  void imprimirConImpresoraComun() async {
+    final pdf = pw.Document();
+    double total = 0;
+
+    pdf.addPage(
+      pw.Page(
+        margin: const pw.EdgeInsets.all(20),
+        build: (pw.Context context) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              // Título
+              pw.Center(
+                child: pw.Text(
+                  '*** Pedido Ankara ***',
+                  style: pw.TextStyle(
+                    fontSize: 18,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+              ),
+              pw.SizedBox(height: 10),
+
+              // Número de mesa
+              pw.Text('Número de mesa: ${widget.mesaSeleccionada.id}'),
+              pw.Divider(),
+
+              // Encabezado de la tabla
+              pw.Table(
+                border: null,
+                columnWidths: {
+                  0: const pw.FlexColumnWidth(4), // Producto
+                  1: const pw.FlexColumnWidth(1), // Cantidad
+                  2: const pw.FlexColumnWidth(2), // Precio
+                  3: const pw.FlexColumnWidth(2), // Subtotal
+                },
+                children: [
+                  pw.TableRow(
+                    children: [
+                      pw.Text(
+                        'Producto',
+                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                      ),
+                      pw.Text(
+                        'Cant.',
+                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                      ),
+                      pw.Text(
+                        'Precio',
+                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                      ),
+                      pw.Text(
+                        'Subtotal',
+                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                  // Filas de productos
+                  ...widget.listaDeProductos
+                      .where((p) => p.cantidadSeleccionada > 0)
+                      .expand((p) {
+                        final subtotal =
+                            p.precioUnitario * p.cantidadSeleccionada;
+                        total += subtotal;
+
+                        return [
+                          pw.TableRow(
+                            children: [
+                              pw.Text(
+                                p.nombreProducto,
+                                style: pw.TextStyle(
+                                  fontWeight: pw.FontWeight.bold,
+                                ),
+                              ),
+                              pw.Text('${p.cantidadSeleccionada}'),
+                              pw.Text(
+                                '\$${p.precioUnitario.toStringAsFixed(2)}',
+                              ),
+                              pw.Text('\$${subtotal.toStringAsFixed(2)}'),
+                            ],
+                          ),
+                          // Fila con los ingredientes personalizados (debajo del producto)
+                          pw.TableRow(
+                            children: [
+                              pw.Column(
+                                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                                children: [
+                                  for (var entry in p.ingredientes.entries)
+                                    if (entry.value == 0)
+                                      pw.Text(
+                                        '   - SIN ${entry.key}',
+                                        style: const pw.TextStyle(
+                                          color: PdfColors.red,
+                                        ),
+                                      )
+                                    else if (entry.value > 1)
+                                      pw.Text(
+                                        '   + ${entry.key} x${entry.value}',
+                                      ),
+                                ],
+                              ),
+                              pw.SizedBox(), // columnas vacías
+                              pw.SizedBox(),
+                              pw.SizedBox(),
+                            ],
+                          ),
+                          pw.TableRow(
+                            children: [
+                              pw.SizedBox(height: 8), // Espacio entre productos
+                              pw.SizedBox(),
+                              pw.SizedBox(),
+                              pw.SizedBox(),
+                            ],
+                          ),
+                        ];
+                      }),
+                ],
+              ),
+
+              pw.SizedBox(height: 10),
+              pw.Divider(),
+
+              // Total
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.end,
+                children: [
+                  pw.Text(
+                    'TOTAL: ',
+                    style: pw.TextStyle(
+                      fontWeight: pw.FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                  pw.Text(
+                    '\$${total.toStringAsFixed(2)}',
+                    style: pw.TextStyle(
+                      fontWeight: pw.FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
             ],
           );
         },
