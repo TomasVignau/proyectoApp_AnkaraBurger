@@ -112,9 +112,11 @@ class Producto extends StatefulWidget {
   final Function(String nombre, int cantidad) onCantidadCambiada;
   final int cantidadInicial;
   final Map<String, int> ingredientes;
-  final Function(String nombreProducto, Map<String, int> nuevosIngredientes)?
+  final Function(String nombreProducto, List<Map<String, int>> nuevasUnidades)?
   onIngredientesCambiados;
+
   final double precio;
+  final String tipo;
 
   const Producto({
     super.key,
@@ -126,6 +128,7 @@ class Producto extends StatefulWidget {
     required this.ingredientes,
     required this.onIngredientesCambiados,
     required this.precio,
+    required this.tipo,
   });
 
   @override
@@ -134,17 +137,29 @@ class Producto extends StatefulWidget {
 
 class _ProductoState extends State<Producto> {
   late int totalProducto;
-  late Map<String, int> ingredientesActuales;
+  late List<Map<String, int>> listaDeIngredientesPorUnidad;
 
   @override
   void initState() {
     super.initState();
+
+    // Arranca en 0 si se desea
     totalProducto = widget.cantidadInicial;
-    ingredientesActuales = Map<String, int>.from(widget.ingredientes);
+
+    // Inicializamos la lista de ingredientes vacía o con elementos según la cantidad inicial
+    listaDeIngredientesPorUnidad = List.generate(
+      totalProducto,
+      (_) => Map<String, int>.from(widget.ingredientes),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final ingredientesResumen =
+        listaDeIngredientesPorUnidad.isNotEmpty
+            ? listaDeIngredientesPorUnidad[0].keys.join(', ')
+            : '';
+
     return Padding(
       padding: const EdgeInsets.only(top: 16, right: 8, left: 8, bottom: 16),
       child: Container(
@@ -186,9 +201,12 @@ class _ProductoState extends State<Producto> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    widget.descripcionProducto,
+                    widget.ingredientes.isNotEmpty
+                        ? 'Ingredientes: ${widget.ingredientes.keys.join(', ')}'
+                        : widget.descripcionProducto,
                     style: const TextStyle(fontSize: 14, color: Colors.black54),
                   ),
+
                   Text(
                     'Precio: \$${widget.precio}',
                     style: const TextStyle(
@@ -212,6 +230,10 @@ class _ProductoState extends State<Producto> {
                     onPressed: () {
                       setState(() {
                         totalProducto++;
+                        // Agregamos una nueva hamburguesa con ingredientes por defecto
+                        listaDeIngredientesPorUnidad.add(
+                          Map<String, int>.from(widget.ingredientes),
+                        );
                         widget.onCantidadCambiada(
                           widget.nombreProducto,
                           totalProducto,
@@ -231,21 +253,22 @@ class _ProductoState extends State<Producto> {
                   ),
                   child: IconButton(
                     onPressed: () {
-                      setState(() {
-                        if (totalProducto > 0) {
+                      if (totalProducto > 0) {
+                        setState(() {
                           totalProducto--;
+                          listaDeIngredientesPorUnidad.removeLast();
                           widget.onCantidadCambiada(
                             widget.nombreProducto,
                             totalProducto,
                           );
-                        }
-                      });
+                        });
+                      }
                     },
                     icon: const Icon(Icons.remove),
                   ),
                 ),
 
-                // Botón editar ingredientes solo si hay ingredientes
+                // Botón editar ingredientes
                 if (widget.ingredientes.isNotEmpty)
                   Container(
                     decoration: BoxDecoration(
@@ -253,37 +276,87 @@ class _ProductoState extends State<Producto> {
                       shape: BoxShape.circle,
                     ),
                     child: IconButton(
-                      onPressed: () async {
+                      /*onPressed: () async {
                         final resultado = await Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder:
-                                (context) => ImcEditarhamburguesaScreen(
-                                  listaDeIngredientes: ingredientesActuales,
+                                (context) => ImcEditarHamburguesaScreen(
+                                  listaDeIngredientes:
+                                      listaDeIngredientesPorUnidad,
+                                  cantidad: totalProducto,
                                 ),
                           ),
                         );
 
                         if (resultado != null &&
-                            resultado is Map<String, int>) {
+                            resultado is List<Map<String, int>>) {
                           setState(() {
-                            ingredientesActuales = Map<String, int>.from(
-                              resultado,
-                            );
+                            listaDeIngredientesPorUnidad =
+                                resultado
+                                    .map((e) => Map<String, int>.from(e))
+                                    .toList();
                           });
 
-                          if (widget.onIngredientesCambiados != null) {
-                            widget.onIngredientesCambiados!(
-                              widget.nombreProducto,
-                              ingredientesActuales,
+                          // Imprimimos todas las hamburguesas editadas en consola
+                          for (int i = 0; i < resultado.length; i++) {
+                            print(
+                              "Hamburguesa #${i + 1}: ${resultado[i].toString()}",
                             );
                           }
+                        }
+                      },*/
+                      onPressed: () async {
+                        // Paso 1: asegurar cantidad de mapas
+                        if (listaDeIngredientesPorUnidad.length <
+                            totalProducto) {
+                          final base = Map<String, int>.from(
+                            listaDeIngredientesPorUnidad.first,
+                          );
+                          while (listaDeIngredientesPorUnidad.length <
+                              totalProducto) {
+                            listaDeIngredientesPorUnidad.add(
+                              Map<String, int>.from(base),
+                            );
+                          }
+                        }
 
-                          /*print(
-                            "Ingredientes modificados: $ingredientesActuales",
-                          );*/
+                        // Paso 2: abrir pantalla de edición
+                        final resultado = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (context) => ImcEditarHamburguesaScreen(
+                                  listaDeIngredientes:
+                                      listaDeIngredientesPorUnidad,
+                                  cantidad: totalProducto,
+                                ),
+                          ),
+                        );
+
+                        // Paso 3: actualizar si hay resultado
+                        if (resultado != null &&
+                            resultado is List<Map<String, int>>) {
+                          setState(() {
+                            listaDeIngredientesPorUnidad =
+                                resultado
+                                    .map((e) => Map<String, int>.from(e))
+                                    .toList();
+                          });
+
+                          // Paso 4: llamar callback una sola vez con todas las unidades
+                          widget.onIngredientesCambiados?.call(
+                            widget.nombreProducto,
+                            listaDeIngredientesPorUnidad,
+                          );
+
+                          // (opcional) Debug
+                          for (int i = 0; i < resultado.length; i++) {
+                            print("Hamburguesa #${i + 1}: ${resultado[i]}");
+                          }
                         }
                       },
+
                       icon: const Icon(Icons.edit, color: Colors.red),
                     ),
                   ),

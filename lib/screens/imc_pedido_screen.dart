@@ -253,6 +253,7 @@ class _ImcPedidoScreenState extends State<ImcPedidoScreen> {
 
 // -------- PARA IMPRIMIR POR PDF --------
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:proyecto_app/components/listaDeProductos.dart';
 import 'package:proyecto_app/components/mesa.dart';
@@ -286,11 +287,47 @@ class _ImcPedidoScreenState extends State<ImcPedidoScreen> {
       return sum + (product.cantidadSeleccionada * product.precioUnitario);
     });
 
-    // Filtramos solo los productos con cantidad seleccionada > 0 para mostrarlos
-    final productosMostrables =
-        widget.listaDeProductos
-            .where((p) => p.cantidadSeleccionada > 0)
-            .toList();
+    // Agrupar productos iguales según nombre e ingredientes
+    final Map<String, ListaDeProductos> mapaAgrupado = {};
+
+    for (var producto in widget.listaDeProductos.where(
+      (p) => p.cantidadSeleccionada > 0,
+    )) {
+      // Creamos una clave única según el nombre y los ingredientes (ordenados)
+      final clave =
+          '${producto.nombreProducto}-${_claveIngredientes(producto.ingredientes)}';
+
+      if (mapaAgrupado.containsKey(clave)) {
+        mapaAgrupado[clave]!.cantidadSeleccionada +=
+            producto.cantidadSeleccionada;
+      } else {
+        mapaAgrupado[clave] = ListaDeProductos(
+          idProducto: producto.idProducto,
+          nombreProducto: producto.nombreProducto,
+          descripcionProducto: producto.descripcionProducto,
+          tipo: producto.tipo,
+          precioUnitario: producto.precioUnitario,
+          urlImagen: producto.urlImagen,
+          ingredientes: Map<String, int>.from(producto.ingredientes),
+          cantidadSeleccionada: producto.cantidadSeleccionada,
+        );
+      }
+    }
+
+    final productosMostrables = mapaAgrupado.values.toList();
+
+    // Mostrar ingredientes de cada producto con cantidad > 0
+    for (var producto in widget.listaDeProductos.where(
+      (p) => p.cantidadSeleccionada > 0,
+    )) {
+      print(
+        'Producto: ${producto.nombreProducto} x${producto.cantidadSeleccionada}',
+      );
+
+      for (int i = 0; i < producto.ingredientesPorUnidad.length; i++) {
+        print('  Unidad #${i + 1}: ${producto.ingredientesPorUnidad[i]}');
+      }
+    }
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -493,6 +530,7 @@ class _ImcPedidoScreenState extends State<ImcPedidoScreen> {
                   ),
                 ],
               ),
+
               child: Column(
                 children: [
                   Row(
@@ -583,61 +621,41 @@ class _ImcPedidoScreenState extends State<ImcPedidoScreen> {
     );
   }
 
-  /*void imprimirConImpresoraComun() async {
-    final pdf = pw.Document();
+  String _claveIngredientes(Map<String, int> ingredientes) {
+    final entradasOrdenadas =
+        ingredientes.entries.toList()..sort((a, b) => a.key.compareTo(b.key));
 
-    pdf.addPage(
-      pw.Page(
-        build: (pw.Context context) {
-          return pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-              pw.Center(
-                child: pw.Text(
-                  '*** Pedido Ankara ***',
-                  style: pw.TextStyle(
-                    fontSize: 18,
-                    fontWeight: pw.FontWeight.bold,
-                  ),
-                ),
-              ),
-              pw.SizedBox(height: 10),
-              pw.Text('Número de mesa: ${widget.mesaSeleccionada.id}'),
-              pw.SizedBox(height: 10),
-              for (var element in widget.listaDeProductos)
-                if (element.cantidadSeleccionada > 0) ...[
-                  pw.Text(
-                    '${element.nombreProducto} x${element.cantidadSeleccionada}',
-                    style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                  ),
-                  for (var entry in element.ingredientes.entries)
-                    // Mostrar ingredientes solo si la cantidad no es 1 (cantidad por defecto)
-                    // o si es 0 (SIN) o >1 (extra)
-                    if (entry.value == 0)
-                      pw.Text(
-                        '       - SIN ${entry.key}',
-                        style: const pw.TextStyle(color: PdfColors.red),
-                      )
-                    else if (entry.value > 1)
-                      pw.Text('     + ${entry.key} x${entry.value}'),
-                  // else if (entry.value == 1) // Puedes optar por no mostrar los ingredientes "normales" para un ticket más limpio
-                  //   pw.Text('     + ${entry.key}'),
-                  pw.SizedBox(height: 10),
-                ],
-            ],
-          );
-        },
-      ),
-    );
-
-    await Printing.layoutPdf(
-      onLayout: (PdfPageFormat format) async => pdf.save(),
-    );
-  }*/
+    return entradasOrdenadas.map((e) => '${e.key}:${e.value}').join(',');
+  }
 
   void imprimirConImpresoraComun() async {
     final pdf = pw.Document();
     double total = 0;
+
+    // Agrupamos productos por nombre y por ingredientes
+    final Map<String, Map<Map<String, int>, int>> productosAgrupados = {};
+
+    for (var p in widget.listaDeProductos.where(
+      (p) => p.cantidadSeleccionada > 0,
+    )) {
+      final key = p.nombreProducto;
+
+      // Busca si ya hay un grupo con los mismos ingredientes
+      bool encontrado = false;
+      if (productosAgrupados.containsKey(key)) {
+        productosAgrupados[key]!.forEach((ingred, cant) {
+          if (mapEquals(ingred, p.ingredientes)) {
+            productosAgrupados[key]![ingred] = cant + p.cantidadSeleccionada;
+            encontrado = true;
+          }
+        });
+      }
+
+      if (!encontrado) {
+        productosAgrupados.putIfAbsent(key, () => {});
+        productosAgrupados[key]![p.ingredientes] = p.cantidadSeleccionada;
+      }
+    }
 
     pdf.addPage(
       pw.Page(
@@ -692,65 +710,79 @@ class _ImcPedidoScreenState extends State<ImcPedidoScreen> {
                       ),
                     ],
                   ),
-                  // Filas de productos
-                  ...widget.listaDeProductos
-                      .where((p) => p.cantidadSeleccionada > 0)
-                      .expand((p) {
-                        final subtotal =
-                            p.precioUnitario * p.cantidadSeleccionada;
-                        total += subtotal;
 
-                        return [
-                          pw.TableRow(
-                            children: [
-                              pw.Text(
-                                p.nombreProducto,
-                                style: pw.TextStyle(
-                                  fontWeight: pw.FontWeight.bold,
+                  // Filas de productos agrupados
+                  ...productosAgrupados.entries.expand((entryProducto) {
+                    final nombre = entryProducto.key;
+                    return entryProducto.value.entries
+                        .map((entryIngred) {
+                          final ingredientes = entryIngred.key;
+                          final cantidad = entryIngred.value;
+                          final subtotal =
+                              cantidad *
+                              widget.listaDeProductos
+                                  .firstWhere(
+                                    (p) =>
+                                        p.nombreProducto == nombre &&
+                                        mapEquals(p.ingredientes, ingredientes),
+                                  )
+                                  .precioUnitario;
+                          total += subtotal;
+
+                          return [
+                            pw.TableRow(
+                              children: [
+                                pw.Text(
+                                  nombre,
+                                  style: pw.TextStyle(
+                                    fontWeight: pw.FontWeight.bold,
+                                  ),
                                 ),
-                              ),
-                              pw.Text('${p.cantidadSeleccionada}'),
-                              pw.Text(
-                                '\$${p.precioUnitario.toStringAsFixed(2)}',
-                              ),
-                              pw.Text('\$${subtotal.toStringAsFixed(2)}'),
-                            ],
-                          ),
-                          // Fila con los ingredientes personalizados (debajo del producto)
-                          pw.TableRow(
-                            children: [
-                              pw.Column(
-                                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                                children: [
-                                  for (var entry in p.ingredientes.entries)
-                                    if (entry.value == 0)
-                                      pw.Text(
-                                        '   - SIN ${entry.key}',
-                                        style: const pw.TextStyle(
-                                          color: PdfColors.red,
+                                pw.Text('$cantidad'),
+                                pw.Text(
+                                  '\$${(subtotal / cantidad).toStringAsFixed(2)}',
+                                ),
+                                pw.Text('\$${subtotal.toStringAsFixed(2)}'),
+                              ],
+                            ),
+                            // Ingredientes
+                            pw.TableRow(
+                              children: [
+                                pw.Column(
+                                  crossAxisAlignment:
+                                      pw.CrossAxisAlignment.start,
+                                  children: [
+                                    for (var entry in ingredientes.entries)
+                                      if (entry.value == 0)
+                                        pw.Text(
+                                          '   - SIN ${entry.key}',
+                                          style: const pw.TextStyle(
+                                            color: PdfColors.red,
+                                          ),
+                                        )
+                                      else if (entry.value > 1)
+                                        pw.Text(
+                                          '   + ${entry.key} x${entry.value}',
                                         ),
-                                      )
-                                    else if (entry.value > 1)
-                                      pw.Text(
-                                        '   + ${entry.key} x${entry.value}',
-                                      ),
-                                ],
-                              ),
-                              pw.SizedBox(), // columnas vacías
-                              pw.SizedBox(),
-                              pw.SizedBox(),
-                            ],
-                          ),
-                          pw.TableRow(
-                            children: [
-                              pw.SizedBox(height: 8), // Espacio entre productos
-                              pw.SizedBox(),
-                              pw.SizedBox(),
-                              pw.SizedBox(),
-                            ],
-                          ),
-                        ];
-                      }),
+                                  ],
+                                ),
+                                pw.SizedBox(),
+                                pw.SizedBox(),
+                                pw.SizedBox(),
+                              ],
+                            ),
+                            pw.TableRow(
+                              children: [
+                                pw.SizedBox(height: 8),
+                                pw.SizedBox(),
+                                pw.SizedBox(),
+                                pw.SizedBox(),
+                              ],
+                            ),
+                          ];
+                        })
+                        .expand((e) => e);
+                  }),
                 ],
               ),
 
@@ -788,252 +820,3 @@ class _ImcPedidoScreenState extends State<ImcPedidoScreen> {
     );
   }
 }
-
-/*import 'package:flutter/material.dart';
-import 'package:proyecto_app/components/listaDeProductos.dart';
-import 'package:proyecto_app/components/mesa.dart';
-import 'package:proyecto_app/core/app_Colors.dart';
-import 'package:pdf/pdf.dart';
-import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
-import 'package:proyecto_app/database/mesa_helper.dart';
-import 'package:proyecto_app/database/pedido_helper.dart';
-
-class ImcPedidoScreen extends StatefulWidget {
-  final List<ListaDeProductos> listaDeProductos;
-  final Mesa mesaSeleccionada;
-
-  const ImcPedidoScreen({
-    super.key,
-    required this.listaDeProductos,
-    required this.mesaSeleccionada,
-  });
-
-  @override
-  State<ImcPedidoScreen> createState() => _ImcPedidoScreenState();
-}
-
-class _ImcPedidoScreenState extends State<ImcPedidoScreen> {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: estiloAppBar(),
-      body: ListView(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            color: Colors.black87,
-            child: Text(
-              'Mesa seleccionada: ${widget.mesaSeleccionada.id}',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-
-          Container(
-            margin: const EdgeInsets.all(10.0),
-            child: Column(
-              children: [
-                for (var element in widget.listaDeProductos)
-                  if (element.cantidadSeleccionada > 0)
-                    Container(
-                      margin: const EdgeInsets.symmetric(vertical: 6.0),
-                      padding: const EdgeInsets.all(12.0),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12.0),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.2),
-                            blurRadius: 6,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                element.nombreProducto,
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Spacer(),
-                              Text(
-                                "${element.cantidadSeleccionada}",
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  color: Colors.black,
-                                ),
-                              ),
-                              Text(
-                                "\n€${element.precioUnitario}",
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  color: Colors.black,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 6),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 4,
-                            children:
-                                element.ingredientes.entries.map((entry) {
-                                  final nombre = entry.key;
-                                  final cantidad = entry.value;
-
-                                  Color color;
-                                  TextDecoration decoracion =
-                                      TextDecoration.none;
-
-                                  if (cantidad == 0) {
-                                    color = Colors.red;
-                                    decoracion = TextDecoration.lineThrough;
-                                  } else if (cantidad == 1) {
-                                    color = Colors.grey;
-                                  } else {
-                                    color = Colors.green;
-                                  }
-
-                                  return Text(
-                                    cantidad > 1
-                                        ? "$nombre x$cantidad"
-                                        : nombre,
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: color,
-                                      decoration: decoracion,
-                                    ),
-                                  );
-                                }).toList(),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () {
-                    Future<String> fechaDelPedido;
-                    if (MesaHelper.verEstadoMesa(widget.mesaSeleccionada.id) == 0){
-                      MesaHelper.cambiarEstadoMesa(widget.mesaSeleccionada.id, 1);
-                    }
-                    
-                    fechaDelPedido = PedidoHelper.obtenerFechaYHoraDelPedido(widget.mesaSeleccionada.id);
-
-                    imprimirConImpresoraComun(fechaDelPedido);
-
-                    // Filtrá solo productos con cantidad > 0 antes de mandar a actualizar
-                    final productosSeleccionados = widget.listaDeProductos.where((p) => p.cantidadSeleccionada > 0).toList();
-
-                    PedidoHelper.actualizarPedido(
-                      productosSeleccionados,
-                      widget.mesaSeleccionada,
-                    );
-                  },
-
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.accent,
-                    foregroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 40,
-                      vertical: 15,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  child: const Text(
-                    'Confirmar Pedido',
-                    style: TextStyle(fontSize: 18),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  AppBar estiloAppBar() {
-    return AppBar(
-      title: const Text("PEDIDO"),
-      backgroundColor: Colors.black,
-      foregroundColor: Colors.white,
-      actions: [
-        Padding(
-          padding: const EdgeInsets.only(right: 10.0),
-          child: Image.asset(
-            'assets/images/LogoAnkara.png',
-            height: 75, // Puedes ajustar el tamaño como necesites
-          ),
-        ),
-      ],
-    );
-  }
-
-  void imprimirConImpresoraComun(Future<String> fechaDelPedido) async {
-    final pdf = pw.Document();
-
-    pdf.addPage(
-      pw.Page(
-        build: (pw.Context context) {
-          return pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-              pw.Center(
-                child: pw.Text(
-                  '*** Pedido Ankara ***',
-                  style: pw.TextStyle(
-                    fontSize: 18,
-                    fontWeight: pw.FontWeight.bold,
-                  ),
-                ),
-              ),
-              pw.SizedBox(height: 10),
-              pw.Text('Número de mesa: ${widget.mesaSeleccionada}'),
-              pw.Text('Fecha del pedido: $fechaDelPedido'),
-              pw.SizedBox(height: 10),
-              for (var element in widget.listaDeProductos)
-                if (element.cantidadSeleccionada > 0) ...[
-                  pw.Text(
-                    '${element.nombreProducto} x${element.cantidadSeleccionada}',
-                    style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                  ),
-                  for (var entry in element.ingredientes.entries)
-                    if (entry.value == 0)
-                      pw.Text(
-                        '       - SIN ${entry.key}',
-                        style: pw.TextStyle(color: PdfColors.red),
-                      )
-                    else if (entry.value > 1)
-                      pw.Text('     + ${entry.key} x${entry.value}')
-                    else
-                      pw.Text('     + ${entry.key}'),
-                  pw.SizedBox(height: 10),
-                ],
-            ],
-          );
-        },
-      ),
-    );
-
-    await Printing.layoutPdf(
-      onLayout: (PdfPageFormat format) async => pdf.save(),
-    );
-  }
-}*/

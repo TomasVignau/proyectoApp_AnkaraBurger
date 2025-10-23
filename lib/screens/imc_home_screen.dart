@@ -201,11 +201,11 @@ class _ImcHomeScreenState extends State<ImcHomeScreen> {
             ),
           ),
 
-          Spacer(),
+          /*Spacer(),
 
           Container(
             decoration: BoxDecoration(
-              color: const Color.fromARGB(127, 255, 243, 174),
+              color: const Color.fromARGB(255, 214, 143, 61),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Padding(
@@ -217,17 +217,17 @@ class _ImcHomeScreenState extends State<ImcHomeScreen> {
                 children: [
                   Text(
                     "Dirección: Carrer d'Albert Einstein, 10, 08860 Castelldefels, Barcelona, España",
-                    style: TextStyle(color: Colors.white),
+                    style: TextStyle(color: Colors.black),
                   ),
                   SizedBox(height: 8), // Espacio entre los textos
                   Text(
                     "Teléfono: +34 686 30 47 38",
-                    style: TextStyle(color: Colors.white),
+                    style: TextStyle(color: Colors.black),
                   ),
                 ],
               ),
             ),
-          ),
+          ),*/
         ],
       ),
     );
@@ -235,9 +235,14 @@ class _ImcHomeScreenState extends State<ImcHomeScreen> {
 
   AppBar estiloAppBar() {
     return AppBar(
-      title: Text("ANKARA BURGER"),
+      title: Text(" ANKARA BURGER "),
       backgroundColor: Colors.black,
       foregroundColor: Colors.white,
+      automaticallyImplyLeading: false,
+      titleTextStyle: TextStyle(
+        fontSize: 24,
+        fontWeight: FontWeight.bold,
+      ),
       actions: [
         Padding(
           padding: const EdgeInsets.only(right: 10.0),

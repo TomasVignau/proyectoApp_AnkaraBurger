@@ -1,39 +1,45 @@
 import 'package:flutter/material.dart';
 
-class ImcEditarhamburguesaScreen extends StatefulWidget {
-  final Map<String, int> listaDeIngredientes;
+class ImcEditarHamburguesaScreen extends StatefulWidget {
+  final List<Map<String, int>> listaDeIngredientes; // <- cambiamos a lista
+  final int cantidad; // cantidad de hamburguesas a editar
 
-  const ImcEditarhamburguesaScreen({
+  const ImcEditarHamburguesaScreen({
     super.key,
     required this.listaDeIngredientes,
+    required this.cantidad,
   });
 
   @override
-  State<ImcEditarhamburguesaScreen> createState() =>
-      _ImcEditarhamburguesaScreenState();
+  State<ImcEditarHamburguesaScreen> createState() =>
+      _ImcEditarHamburguesaScreenState();
 }
 
-class _ImcEditarhamburguesaScreenState
-    extends State<ImcEditarhamburguesaScreen> {
-  late Map<String, int> ingredientesEditables;
+class _ImcEditarHamburguesaScreenState
+    extends State<ImcEditarHamburguesaScreen> {
+  late List<Map<String, int>> listasDeIngredientesEditables;
 
   @override
   void initState() {
     super.initState();
-    // Clonamos para editar sin modificar el original hasta confirmar
-    ingredientesEditables = Map.from(widget.listaDeIngredientes);
+    // Creamos copias independientes de cada hamburguesa
+    listasDeIngredientesEditables = widget.listaDeIngredientes
+        .map((ingredientes) => Map<String, int>.from(ingredientes))
+        .toList();
   }
 
-  void incrementar(String nombre) {
+  void incrementar(int index, String nombre) {
     setState(() {
-      ingredientesEditables[nombre] = (ingredientesEditables[nombre] ?? 0) + 1;
+      final mapa = listasDeIngredientesEditables[index];
+      mapa[nombre] = (mapa[nombre] ?? 0) + 1;
     });
   }
 
-  void decrementar(String nombre) {
+  void decrementar(int index, String nombre) {
     setState(() {
-      if ((ingredientesEditables[nombre] ?? 0) > 0) {
-        ingredientesEditables[nombre] = ingredientesEditables[nombre]! - 1;
+      final mapa = listasDeIngredientesEditables[index];
+      if ((mapa[nombre] ?? 0) > 0) {
+        mapa[nombre] = mapa[nombre]! - 1;
       }
     });
   }
@@ -43,19 +49,24 @@ class _ImcEditarhamburguesaScreenState
     return Scaffold(
       backgroundColor: const Color(0xDF837E66),
       appBar: estiloAppBar(),
-      body: ListView(
+      body: ListView.builder(
         padding: const EdgeInsets.all(16),
-        children:
-            ingredientesEditables.entries.map((entry) {
-              return Card(
-                child: ListTile(
+        itemCount: listasDeIngredientesEditables.length,
+        itemBuilder: (context, index) {
+          final ingredientes = listasDeIngredientesEditables[index];
+          return Card(
+            margin: const EdgeInsets.only(bottom: 12),
+            child: ExpansionTile(
+              title: Text("Hamburguesa #${index + 1}"),
+              children: ingredientes.entries.map((entry) {
+                return ListTile(
                   title: Text(entry.key),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
                         icon: const Icon(Icons.remove),
-                        onPressed: () => decrementar(entry.key),
+                        onPressed: () => decrementar(index, entry.key),
                       ),
                       Text(
                         '${entry.value}',
@@ -63,18 +74,20 @@ class _ImcEditarhamburguesaScreenState
                       ),
                       IconButton(
                         icon: const Icon(Icons.add),
-                        onPressed: () => incrementar(entry.key),
+                        onPressed: () => incrementar(index, entry.key),
                       ),
                     ],
                   ),
-                ),
-              );
-            }).toList(),
+                );
+              }).toList(),
+            ),
+          );
+        },
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          // Volver a la pantalla anterior pasando los cambios
-          Navigator.pop(context, ingredientesEditables);
+          // Devolvemos la lista completa de hamburguesas editadas
+          Navigator.pop(context, listasDeIngredientesEditables);
         },
         label: const Text("Guardar"),
         icon: const Icon(Icons.save),

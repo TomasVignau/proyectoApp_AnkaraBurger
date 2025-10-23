@@ -192,23 +192,138 @@ class _ImcPag1ScreenState extends State<ImcPag1Screen> {
                 child:
                     listadoDeProductos.isEmpty
                         ? const Center(child: CircularProgressIndicator())
-                        : ListView(
-                          children:
-                              listadoDeProductos.map((productoModel) {
-                                return Producto(
-                                  nombreProducto: productoModel.nombreProducto,
-                                  urlImagen: productoModel.urlImagen,
-                                  descripcionProducto:
-                                      productoModel.descripcionProducto,
-                                  onCantidadCambiada: actualizarCantidad,
-                                  cantidadInicial:
-                                      productoModel.cantidadSeleccionada,
-                                  ingredientes: productoModel.ingredientes,
-                                  onIngredientesCambiados:
-                                      actualizarIngredientes,
-                                  precio: productoModel.precioUnitario,
-                                );
-                              }).toList(),
+                        : SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              // Sección Hamburguesas
+                              if (listadoDeProductos.any(
+                                (p) => p.tipo.toLowerCase() == "hamburguesa",
+                              )) ...[
+                                const Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: Text(
+                                    "---- Hamburguesas ----",
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      color: Colors.amber,
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      backgroundColor: Colors.black54,
+                                    ),
+                                  ),
+                                ),
+                                ...listadoDeProductos
+                                    .where(
+                                      (p) =>
+                                          p.tipo.toLowerCase() == "hamburguesa",
+                                    )
+                                    .map(
+                                      (productoModel) => Producto(
+                                        nombreProducto:
+                                            productoModel.nombreProducto,
+                                        urlImagen: productoModel.urlImagen,
+                                        descripcionProducto:
+                                            productoModel.descripcionProducto,
+                                        onCantidadCambiada: actualizarCantidad,
+                                        cantidadInicial:
+                                            productoModel.cantidadSeleccionada,
+                                        ingredientes:
+                                            productoModel.ingredientes,
+                                        onIngredientesCambiados:
+                                            actualizarIngredientes,
+                                        precio: productoModel.precioUnitario,
+                                        tipo: productoModel.tipo,
+                                      ),
+                                    )
+                                    .toList(),
+                              ],
+
+                              // Sección Bebidas
+                              if (listadoDeProductos.any(
+                                (p) => p.tipo.toLowerCase() == "bebida",
+                              )) ...[
+                                const Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: Text(
+                                    "---- Bebidas ----",
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      color: Colors.amber,
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      backgroundColor: Colors.black54,
+                                    ),
+                                  ),
+                                ),
+                                ...listadoDeProductos
+                                    .where(
+                                      (p) => p.tipo.toLowerCase() == "bebida",
+                                    )
+                                    .map(
+                                      (productoModel) => Producto(
+                                        nombreProducto:
+                                            productoModel.nombreProducto,
+                                        urlImagen: productoModel.urlImagen,
+                                        descripcionProducto:
+                                            productoModel.descripcionProducto,
+                                        onCantidadCambiada: actualizarCantidad,
+                                        cantidadInicial:
+                                            productoModel.cantidadSeleccionada,
+                                        ingredientes:
+                                            productoModel.ingredientes,
+                                        onIngredientesCambiados:
+                                            actualizarIngredientes,
+                                        precio: productoModel.precioUnitario,
+                                        tipo: productoModel.tipo,
+                                      ),
+                                    )
+                                    .toList(),
+                              ],
+
+                              // Sección Otros
+                              if (listadoDeProductos.any(
+                                (p) => p.tipo.toLowerCase() == "otro",
+                              )) ...[
+                                const Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: Text(
+                                    "---- Otros ----",
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      color: Colors.amber,
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      backgroundColor: Colors.black54,
+                                    ),
+                                  ),
+                                ),
+                                ...listadoDeProductos
+                                    .where(
+                                      (p) => p.tipo.toLowerCase() == "otro",
+                                    )
+                                    .map(
+                                      (productoModel) => Producto(
+                                        nombreProducto:
+                                            productoModel.nombreProducto,
+                                        urlImagen: productoModel.urlImagen,
+                                        descripcionProducto:
+                                            productoModel.descripcionProducto,
+                                        onCantidadCambiada: actualizarCantidad,
+                                        cantidadInicial:
+                                            productoModel.cantidadSeleccionada,
+                                        ingredientes:
+                                            productoModel.ingredientes,
+                                        onIngredientesCambiados:
+                                            actualizarIngredientes,
+                                        precio: productoModel.precioUnitario,
+                                        tipo: productoModel.tipo,
+                                      ),
+                                    )
+                                    .toList(),
+                              ],
+                            ],
+                          ),
                         ),
               ),
             ],
@@ -282,18 +397,34 @@ class _ImcPag1ScreenState extends State<ImcPag1Screen> {
                                   context,
                                 ).pop(); // Cierra el diálogo primero
 
-                                List<ListaDeProductos> productosEnPedido = await PedidoHelper.verPedido(widget.mesaSeleccionada.id,);
+                                List<ListaDeProductos> productosEnPedido =
+                                    await PedidoHelper.verPedido(
+                                      widget.mesaSeleccionada.id,
+                                    );
 
-                                double precioFinal = productosEnPedido.fold(0.0, (double sum, ListaDeProductos p) {
-                                  return sum + (p.cantidadSeleccionada * p.precioUnitario);});
+                                double precioFinal = productosEnPedido.fold(
+                                  0.0,
+                                  (double sum, ListaDeProductos p) {
+                                    return sum +
+                                        (p.cantidadSeleccionada *
+                                            p.precioUnitario);
+                                  },
+                                );
 
+                                await PedidoHelper.guardarPrecioFinalDelPedido(
+                                  widget.mesaSeleccionada.id,
+                                  precioFinal,
+                                );
 
-                                await PedidoHelper.guardarPrecioFinalDelPedido(widget.mesaSeleccionada.id, precioFinal);
+                                imprimirConImpresoraComun(
+                                  productosEnPedido,
+                                  precioFinal,
+                                );
 
-                                imprimirConImpresoraComun(productosEnPedido, precioFinal);
-
-                                 // Ejecuta la lógica de finalizar
-                                await PedidoHelper.finalizarPedido(widget.mesaSeleccionada.id);
+                                // Ejecuta la lógica de finalizar
+                                await PedidoHelper.finalizarPedido(
+                                  widget.mesaSeleccionada.id,
+                                );
 
                                 Navigator.push(
                                   context,
@@ -341,16 +472,41 @@ class _ImcPag1ScreenState extends State<ImcPag1Screen> {
                 FloatingActionButton(
                   heroTag: "carritoBtn", // Único heroTag
                   onPressed: () {
+                    // Crear una lista nueva donde cada unidad de producto sea independiente
+                    final List<ListaDeProductos> productosSeleccionados = [];
+
+                    for (var producto in listadoDeProductos) {
+                      for (int i = 0; i < producto.cantidadSeleccionada; i++) {
+                        productosSeleccionados.add(
+                          ListaDeProductos(
+                            idProducto: producto.idProducto,
+                            nombreProducto: producto.nombreProducto,
+                            descripcionProducto: producto.descripcionProducto,
+                            tipo: producto.tipo,
+                            precioUnitario: producto.precioUnitario,
+                            urlImagen: producto.urlImagen,
+                            ingredientes: Map<String, int>.from(
+                              producto.ingredientesPorUnidad.length > i
+                                  ? producto.ingredientesPorUnidad[i]
+                                  : producto.ingredientes, // fallback seguro
+                            ),
+                            cantidadSeleccionada: 1, // cada unidad por separado
+                          ),
+                        );
+                      }
+                    }
+
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder:
                             (context) => ImcPedidoScreen(
-                              listaDeProductos: listadoDeProductos,
+                              listaDeProductos: productosSeleccionados,
                               mesaSeleccionada: widget.mesaSeleccionada,
                             ),
                       ),
                     );
+
                     print("BOTÓN CARRITO PRESIONADO");
                   },
                   backgroundColor: Colors.black,
@@ -421,110 +577,126 @@ class _ImcPag1ScreenState extends State<ImcPag1Screen> {
   // Método para actualizar los ingredientes (ahora opera sobre ListaDeProductos)
   void actualizarIngredientes(
     String nombreProducto,
-    Map<String, int> nuevosIngredientes,
+    List<Map<String, int>> nuevasUnidades,
   ) {
     setState(() {
       final producto = listadoDeProductos.firstWhere(
         (p) => p.nombreProducto == nombreProducto,
       );
-      producto.ingredientes = nuevosIngredientes;
+      producto.ingredientesPorUnidad = nuevasUnidades; // <--- lista completa
+      print(
+        "HOLA INGREDIENTES POR UNIDAD:" +
+            producto.ingredientesPorUnidad.toString(),
+      );
     });
   }
 
-  void imprimirConImpresoraComun(List<ListaDeProductos> productosEnPedido, double total) async {
-  final pdf = pw.Document();
+  void imprimirConImpresoraComun(
+    List<ListaDeProductos> productosEnPedido,
+    double total,
+  ) async {
+    final pdf = pw.Document();
 
-  double total = 0;
+    double total = 0;
 
-  pdf.addPage(
-    pw.Page(
-      margin: const pw.EdgeInsets.all(20),
-      build: (pw.Context context) {
-        return pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
-          children: [
-            pw.Center(
-              child: pw.Text(
-                '*** Pedido Ankara ***',
-                style: pw.TextStyle(
-                  fontSize: 18,
-                  fontWeight: pw.FontWeight.bold,
+    pdf.addPage(
+      pw.Page(
+        margin: const pw.EdgeInsets.all(20),
+        build: (pw.Context context) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Center(
+                child: pw.Text(
+                  '*** Pedido Ankara ***',
+                  style: pw.TextStyle(
+                    fontSize: 18,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
                 ),
               ),
-            ),
-            pw.SizedBox(height: 10),
-            pw.Text('Número de mesa: ${widget.mesaSeleccionada.id}'),
-            pw.Divider(),
-            // Tabla de productos
-            pw.Table(
-              border: null,
-              columnWidths: {
-                0: const pw.FlexColumnWidth(4), // Producto
-                1: const pw.FlexColumnWidth(1), // Cantidad
-                2: const pw.FlexColumnWidth(2), // Precio
-                3: const pw.FlexColumnWidth(2), // Subtotal
-              },
-              children: [
-                // Encabezados
-                pw.TableRow(
-                  children: [
-                    pw.Text('Producto',
-                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                    pw.Text('Cant.',
-                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                    pw.Text('Precio',
-                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                    pw.Text('Subtotal',
-                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                  ],
-                ),
-                // Productos
-                ...productosEnPedido.where((p) => p.cantidadSeleccionada > 0).map((p) {
-                  final subtotal = p.precioUnitario * p.cantidadSeleccionada;
-                  total += subtotal;
-                  return pw.TableRow(
+              pw.SizedBox(height: 10),
+              pw.Text('Número de mesa: ${widget.mesaSeleccionada.id}'),
+              pw.Divider(),
+              // Tabla de productos
+              pw.Table(
+                border: null,
+                columnWidths: {
+                  0: const pw.FlexColumnWidth(4), // Producto
+                  1: const pw.FlexColumnWidth(1), // Cantidad
+                  2: const pw.FlexColumnWidth(2), // Precio
+                  3: const pw.FlexColumnWidth(2), // Subtotal
+                },
+                children: [
+                  // Encabezados
+                  pw.TableRow(
                     children: [
-                      pw.Text(p.nombreProducto),
-                      pw.Text('${p.cantidadSeleccionada}'),
-                      pw.Text('\$${p.precioUnitario.toStringAsFixed(2)}'),
-                      pw.Text('\$${subtotal.toStringAsFixed(2)}'),
+                      pw.Text(
+                        'Producto',
+                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                      ),
+                      pw.Text(
+                        'Cant.',
+                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                      ),
+                      pw.Text(
+                        'Precio',
+                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                      ),
+                      pw.Text(
+                        'Subtotal',
+                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                      ),
                     ],
-                  );
-                }),
-              ],
-            ),
-            pw.SizedBox(height: 10),
-            pw.Divider(),
-            // Total
-            pw.Row(
-              mainAxisAlignment: pw.MainAxisAlignment.end,
-              children: [
-                pw.Text(
-                  'TOTAL: ',
-                  style: pw.TextStyle(
-                    fontWeight: pw.FontWeight.bold,
-                    fontSize: 14,
                   ),
-                ),
-                pw.Text(
-                  '\$${total.toStringAsFixed(2)}',
-                  style: pw.TextStyle(
-                    fontWeight: pw.FontWeight.bold,
-                    fontSize: 14,
+                  // Productos
+                  ...productosEnPedido
+                      .where((p) => p.cantidadSeleccionada > 0)
+                      .map((p) {
+                        final subtotal =
+                            p.precioUnitario * p.cantidadSeleccionada;
+                        total += subtotal;
+                        return pw.TableRow(
+                          children: [
+                            pw.Text(p.nombreProducto),
+                            pw.Text('${p.cantidadSeleccionada}'),
+                            pw.Text('\$${p.precioUnitario.toStringAsFixed(2)}'),
+                            pw.Text('\$${subtotal.toStringAsFixed(2)}'),
+                          ],
+                        );
+                      }),
+                ],
+              ),
+              pw.SizedBox(height: 10),
+              pw.Divider(),
+              // Total
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.end,
+                children: [
+                  pw.Text(
+                    'TOTAL: ',
+                    style: pw.TextStyle(
+                      fontWeight: pw.FontWeight.bold,
+                      fontSize: 14,
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ],
-        );
-      },
-    ),
-  );
+                  pw.Text(
+                    '\$${total.toStringAsFixed(2)}',
+                    style: pw.TextStyle(
+                      fontWeight: pw.FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          );
+        },
+      ),
+    );
 
-  await Printing.layoutPdf(
-    onLayout: (PdfPageFormat format) async => pdf.save(),
-  );
-}
-
-
+    await Printing.layoutPdf(
+      onLayout: (PdfPageFormat format) async => pdf.save(),
+    );
+  }
 }
